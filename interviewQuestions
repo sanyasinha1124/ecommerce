@@ -1,0 +1,97 @@
+ rubric explicitly requires a single process in production.
+means no 2 diffn servers like in(backend on port 3000, Angular dev server on 4200)
+building - 2 servers makes it difficult to - unify them at the end
+TypeORM is specifically designed for TypeScript;
+
+experimentalDecorators and emitDecoratorMetadata — TypeORM will not work without both of these. 
+
+attributes ko leta ni haiiii so do these -- 
+1. "strictPropertyInitialization": false -- 
+ or 
+2.@Column()
+price!: number;
+or
+3.@Column()
+price: number=0 // setting default value
+
+ 
+ "Why did you separate app.ts from server.ts? Couldn't you just call app.listen() inside app.ts?"
+-> app.ts → application logic (routes, middleware, error handling).
+
+   server.ts → runtime concerns (port, logging, environment variables).
+
+   If app.listen() is inside app.ts, importing app in a test automatically starts a server, which is undesirable. With separation, you can import app as a plain object and test routes directly.
+
+   Router Module: Angular’s RouterModule listens for URL changes (/products/5) and decides which component to display
+
+   The browser’s history API (pushState, replaceState) lets Angular change the URL without reloading the page.
+
+   If a user types /products/5 in the address bar:
+
+-->The browser requests /products/5 from the server.
+    If the server doesn’t know about Angular routes, it returns a 404.
+
+    // Fallback: send index.html for all other routes
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'dist/my-angular-app/index.html'));
+});
+
+
+1. Normalization (specifically 3NF)
+Your schema must be in Third Normal Form — every non-key column depends on the primary key, the whole key, and nothing but the key. The most common violation students make here is storing categoryName directly on the Product table instead of a foreign key to Category. That's a 2NF violation — the name depends on the category, not the product.
+2. The Price Snapshot Problem
+The rubric explicitly states: "the price at the time of purchase, not the current price." This means OrderItem must store a priceAtPurchase column — a copy of the price at checkout time. You cannot store just a foreign key to Product and read product.price later, because that price may have changed. This is a deliberate denormalization for historical accuracy, and it's a sign of mature schema design.
+3. Referential Integrity via Foreign Keys
+TypeORM's @ManyToOne / @OneToMany decorators generate foreign key constraints in the DB. This means you cannot delete a Category that still has SubCategories without handling it — the DB will reject it. You need to think about cascade behavior.
+4. The Cart vs OrderItem Distinction
+CartItem is transient — it exists until checkout, then gets deleted. OrderItem is permanent — it is a historical record. They look similar but serve opposite purposes. Students who try to reuse one table for both fail the price snapshot requirement.
+
+User ──────────────────────────────────────────────────┐
+│  id, name, email,passwordHash,                      │
+│  role (guest/customer/admin),isLocked               │
+│                                                     │
+│  ├── Cart (1:1) ──── CartItem (1:N) ──Product       │
+│  └── Order (1:N) ─── OrderItem (1:N) ─Product       │
+│                         └── priceAtPurchas✓        │
+│                                                     │
+Type (1:N) ── Category (1:N) ── SubCategory (1:N)Product
+
+Q2: "What happens in your schema if an Admin deletes a Product that exists in someone's order history?"
+
+This is a referential integrity question. OrderItem has a foreign key to Product. If you delete the product, the DB will throw a constraint violation — which is the correct default behavior, because you'd be destroying order history. The right solution is to add a isActive boolean to Product and do soft deletes — mark it inactive so it no longer appears in listings, but the row remains in the DB so OrderItem foreign keys stay valid.
+
+ synchronize: true is convenient in development but dangerous in production — it can drop columns if you rename them. In production you'd switch to migrations: typeorm migration:generate + migration:run.
+
+
+ Request arrives
+     │
+     ▼
+┌─────────────────────────────┐
+│  Layer 1: JWT Cookie        │  "Is this token cryptographically valid?"
+│  jwt.verify(token, secret)  │  Stateless — no DB hit needed
+└─────────────┬───────────────┘
+              │ ✓
+              ▼
+┌─────────────────────────────┐
+│  Layer 2: Session Store     │  "Is this session still active?"
+│  SessionStore.get(id)       │  Catches logouts + immediate account locks
+└─────────────┬───────────────┘
+              │ ✓
+              ▼
+        req.user populated → next()
+
+
+        Why JWT alone is insufficient: JWTs are stateless — once issued, they're valid until expiry. If an admin locks a customer account, the customer's JWT is still cryptographically valid. The session store is what makes the lock take effect immediately — deleteByUserId() removes their session entry, so their next request fails Layer 2 even though Layer 1 still passes.
+
+
+        "What is bcrypt's salt and why does the work factor matter?"
+
+A salt is random bytes prepended to the password before hashing, ensuring two users with the same password get different hashes — defeating rainbow table attacks. The work factor (cost, e.g. 12) controls how many iterations bcrypt runs — each increment doubles the computation time. At factor 12, hashing takes ~250ms on a modern CPU. That's imperceptible to a legitimate user logging in once, but makes brute-force attacks computationally prohibitive — an attacker trying millions of passwords per second is slowed to thousands per second per machine.
+
+Q3: "How does deleteByUserId in the session store enforce immediate account locking? Walk me through the exact sequence."
+
+Admin calls PATCH /api/admin/customers/:id/lock. The service sets user.isLocked = true in the DB and calls SessionStore.deleteByUserId(id). That removes every Map entry where val.userId === id. The customer's next request hits authenticate middleware — the JWT verifies fine (Layer 1 passes), but SessionStore.get(payload.sessionId) returns undefined (Layer 2 fails). The middleware returns 401. The Angular interceptor catches the 401, clears local auth state, and redirects to login. The lock is effective within one request — there is no polling delay.
+
+Q1: "Why does OrderItem store priceAtPurchase instead of just reading the price from the Product table when displaying order history?"
+
+Because product prices change over time. If a customer bought a keyboard for ₹2,500 in January and the price drops to ₹1,999 in March, their January order must still show ₹2,500 — that's what they actually paid. Storing only a foreign key to Product and reading product.price at display time would show the wrong number. priceAtPurchase is a deliberate, justified denormalization — we're trading a small amount of storage for permanent historical accuracy.

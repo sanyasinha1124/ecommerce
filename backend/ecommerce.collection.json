@@ -1,0 +1,853 @@
+{
+  "info": {
+    "name": "E-Commerce Backend — Complete Test Suite",
+    "_postman_id": "ecommerce-test-suite-v1",
+    "description": "Full test collection for E-Commerce backend. Run in order: Auth → Products → Cart → Orders → Admin.\n\nSetup: Make sure your server is running on http://localhost:3000 and you have run `npm run seed`.\n\nImportant: Enable 'Automatically follow redirects' and 'Send cookies' in Postman settings.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000", "type": "string" },
+    { "key": "customerToken", "value": "", "type": "string" },
+    { "key": "adminToken", "value": "", "type": "string" },
+    { "key": "productId", "value": "1", "type": "string" },
+    { "key": "cartItemId", "value": "", "type": "string" },
+    { "key": "orderId", "value": "", "type": "string" },
+    { "key": "customerId", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "00 — Health Check",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/health",
+            "description": "Confirm server is running. Expected: { status: 'ok' }"
+          }
+        }
+      ]
+    },
+    {
+      "name": "01 — Authentication",
+      "item": [
+        {
+          "name": "Register — Valid Customer",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/auth/register",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Sanya Test\",\n  \"email\": \"sanya@test.com\",\n  \"password\": \"Test1234\"\n}"
+            },
+            "description": "Expected: 201 { message: 'Registration successful' }"
+          }
+        },
+        {
+          "name": "Register — Duplicate Email (should fail)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/auth/register",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Sanya Test\",\n  \"email\": \"sanya@test.com\",\n  \"password\": \"Test1234\"\n}"
+            },
+            "description": "Expected: 409 { message: 'Email already registered' }"
+          }
+        },
+        {
+          "name": "Register — Weak Password (should fail)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/auth/register",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"weak@test.com\",\n  \"password\": \"abc\"\n}"
+            },
+            "description": "Expected: 422 with validation errors (too short, no uppercase, no number)"
+          }
+        },
+        {
+          "name": "Register — Invalid Email (should fail)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/auth/register",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"not-an-email\",\n  \"password\": \"Test1234\"\n}"
+            },
+            "description": "Expected: 422 with validation error on email"
+          }
+        },
+        {
+          "name": "Login — Customer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Auto-save cookie is handled by Postman cookie jar",
+                  "// Optionally save userId from response",
+                  "const json = pm.response.json();",
+                  "if (json.user) {",
+                  "  pm.collectionVariables.set('customerId', json.user.id);",
+                  "  console.log('Customer ID saved:', json.user.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"sanya@test.com\",\n  \"password\": \"Test1234\"\n}"
+            },
+            "description": "Expected: 200 with user object. Cookie 'token' set as HttpOnly. Check Postman cookie jar for localhost."
+          }
+        },
+        {
+          "name": "Login — Wrong Password (should fail)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"sanya@test.com\",\n  \"password\": \"WrongPass99\"\n}"
+            },
+            "description": "Expected: 401 { message: 'Invalid email or password' }. Same message as wrong email — prevents user enumeration."
+          }
+        },
+        {
+          "name": "Login — Non-existent Email (should fail)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"nobody@test.com\",\n  \"password\": \"Test1234\"\n}"
+            },
+            "description": "Expected: 401. SAME message as wrong password — cannot distinguish which field is wrong."
+          }
+        },
+        {
+          "name": "Forgot Password — Get Reset Code",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.code) {",
+                  "  pm.collectionVariables.set('resetCode', json.code);",
+                  "  console.log('Reset code saved:', json.code);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/auth/forgot-password",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"sanya@test.com\"\n}"
+            },
+            "description": "Expected: 200 with { code: '123456' }. Code is shown directly on screen (mock flow — no email). Code expires in 10 minutes."
+          }
+        },
+        {
+          "name": "Forgot Password — Non-existent Email",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/auth/forgot-password",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"nobody@test.com\"\n}"
+            },
+            "description": "Expected: 200 with { code: null }. Always returns 200 — don't reveal whether email exists."
+          }
+        },
+        {
+          "name": "Reset Password — Valid Code",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/auth/reset-password",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"sanya@test.com\",\n  \"code\": \"{{resetCode}}\",\n  \"newPassword\": \"NewPass99\"\n}"
+            },
+            "description": "Expected: 200 { message: 'Password reset successful' }. Replace {{resetCode}} with the code from the previous request if variable didn't auto-save."
+          }
+        },
+        {
+          "name": "Reset Password — Wrong Code (should fail)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/auth/reset-password",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"sanya@test.com\",\n  \"code\": \"000000\",\n  \"newPassword\": \"NewPass99\"\n}"
+            },
+            "description": "Expected: 400 { message: 'Invalid reset code' }"
+          }
+        },
+        {
+          "name": "Login — With New Password (after reset)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"sanya@test.com\",\n  \"password\": \"NewPass99\"\n}"
+            },
+            "description": "Expected: 200. Login with the new password set after reset. Old password 'Test1234' should now fail."
+          }
+        },
+        {
+          "name": "Login — Old Password After Reset (should fail)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"sanya@test.com\",\n  \"password\": \"Test1234\"\n}"
+            },
+            "description": "Expected: 401. Old password must no longer work after reset."
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/auth/logout",
+            "description": "Expected: 200 { message: 'Logged out successfully' }. Cookie cleared. Session removed from Map."
+          }
+        },
+        {
+          "name": "Access Protected Route After Logout (should fail)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/cart",
+            "description": "Expected: 401. Session was deleted on logout — even if cookie somehow persists, session check fails."
+          }
+        },
+        {
+          "name": "Login — Customer (re-login for further tests)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"sanya@test.com\",\n  \"password\": \"NewPass99\"\n}"
+            },
+            "description": "Re-login with new password so cookie is active for Cart/Order tests below."
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 — Products (Public)",
+      "item": [
+        {
+          "name": "Get Taxonomy Tree",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/products/taxonomy",
+            "description": "Expected: Full nested tree — Types → Categories → SubCategories. Used to build nav menus in Angular."
+          }
+        },
+        {
+          "name": "List All Products (paginated)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/products?page=1&limit=12",
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "12" }
+              ]
+            },
+            "description": "Expected: { products: [...], pagination: { total, page, limit, totalPages } }"
+          }
+        },
+        {
+          "name": "Search — 'table' (CROSS-TAXONOMY TEST)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/products/search?keyword=table",
+              "query": [{ "key": "keyword", "value": "table" }]
+            },
+            "description": "THE RUBRIC TEST. Expected: Both 'Wooden Table' (Furniture) AND 'Multiplication Table Book' (Stationery) appear in the same result set. If only one appears, the cross-taxonomy search is broken."
+          }
+        },
+        {
+          "name": "Search — 'keyboard'",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/products/search?keyword=keyboard",
+              "query": [{ "key": "keyword", "value": "keyboard" }]
+            },
+            "description": "Expected: All keyboard products. Tests description search (mechanical keyboard description contains 'keyboard')."
+          }
+        },
+        {
+          "name": "Filter — By Type ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/products?typeId=1",
+              "query": [{ "key": "typeId", "value": "1" }]
+            },
+            "description": "Expected: Only products belonging to Type with id=1 (Electronics). Check your seed data for correct IDs."
+          }
+        },
+        {
+          "name": "Filter — Price Range",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/products?minPrice=100&maxPrice=500",
+              "query": [
+                { "key": "minPrice", "value": "100" },
+                { "key": "maxPrice", "value": "500" }
+              ]
+            },
+            "description": "Expected: Only products priced between 100 and 500. Tests price range filter."
+          }
+        },
+        {
+          "name": "Filter — Composed (keyword + price range)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/products/search?keyword=table&minPrice=100&maxPrice=1000",
+              "query": [
+                { "key": "keyword", "value": "table" },
+                { "key": "minPrice", "value": "100" },
+                { "key": "maxPrice", "value": "1000" }
+              ]
+            },
+            "description": "Expected: 'Multiplication Table Book' (299) appears. 'Wooden Table' (15999) filtered out by maxPrice. Tests filter composition."
+          }
+        },
+        {
+          "name": "Filter — In Stock Only",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/products?inStockOnly=true",
+              "query": [{ "key": "inStockOnly", "value": "true" }]
+            },
+            "description": "Expected: Only products where stock > 0."
+          }
+        },
+        {
+          "name": "Filter — Pagination Page 2",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/products?page=2&limit=2",
+              "query": [
+                { "key": "page", "value": "2" },
+                { "key": "limit", "value": "2" }
+              ]
+            },
+            "description": "Expected: Second page of results with limit=2. Verify pagination.page=2 and different products than page 1."
+          }
+        },
+        {
+          "name": "Get Product Detail",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/products/1",
+            "description": "Expected: Single product with full taxonomy path (subCategory → category → type). Accessible to guests — no auth needed."
+          }
+        },
+        {
+          "name": "Get Product Detail — Non-existent (should fail)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/products/99999",
+            "description": "Expected: 404 { message: 'Product not found' }"
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 — Cart (Customer Only)",
+      "item": [
+        {
+          "name": "Get Empty Cart",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/cart",
+            "description": "Expected: Cart with empty items array and subtotal 0. Requires customer login cookie."
+          }
+        },
+        {
+          "name": "Add Item to Cart",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.items && json.items.length > 0) {",
+                  "  pm.collectionVariables.set('cartItemId', json.items[0].id);",
+                  "  console.log('Cart item ID saved:', json.items[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/cart/items",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": 1,\n  \"quantity\": 2\n}"
+            },
+            "description": "Expected: Updated cart with item. subtotal = price × quantity."
+          }
+        },
+        {
+          "name": "Add Same Item Again (UPSERT test)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/cart/items",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": 1,\n  \"quantity\": 2\n}"
+            },
+            "description": "Expected: Same item's quantity becomes 4 (2+2). NO duplicate row created. This tests the upsert logic."
+          }
+        },
+        {
+          "name": "Add Different Item",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/cart/items",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": 2,\n  \"quantity\": 1\n}"
+            },
+            "description": "Expected: Cart now has 2 distinct items."
+          }
+        },
+        {
+          "name": "Add Non-existent Product (should fail)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/cart/items",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": 99999,\n  \"quantity\": 1\n}"
+            },
+            "description": "Expected: 404 { message: 'Product not found' }"
+          }
+        },
+        {
+          "name": "Add Item — Invalid Quantity (should fail)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/cart/items",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": 1,\n  \"quantity\": 0\n}"
+            },
+            "description": "Expected: 422 validation error. Quantity must be >= 1."
+          }
+        },
+        {
+          "name": "Update Item Quantity",
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/api/cart/items/{{cartItemId}}",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 3\n}"
+            },
+            "description": "Expected: Cart item quantity updated to 3. subtotal recalculated."
+          }
+        },
+        {
+          "name": "Remove Item from Cart",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/api/cart/items/{{cartItemId}}",
+            "description": "Expected: Cart returned with item removed."
+          }
+        },
+        {
+          "name": "View Cart (Guest — should fail)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/cart",
+            "header": [{ "key": "Cookie", "value": "" }],
+            "description": "Expected: 401. Send request WITHOUT cookie. Cart is for logged-in customers only."
+          }
+        },
+        {
+          "name": "PERSISTENCE TEST — Logout then Login",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/auth/logout",
+            "description": "Step 1 of persistence test: Logout. Then run Login again. Then GET /cart. Items must still be there."
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 — Orders (Customer Only)",
+      "item": [
+        {
+          "name": "Place Order — Credit Card",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.id) {",
+                  "  pm.collectionVariables.set('orderId', json.id);",
+                  "  console.log('Order ID saved:', json.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/orders",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paymentMethod\": \"credit_card\"\n}"
+            },
+            "description": "Expected: 201 with full order including items each with priceAtPurchase. Cart must be empty after this."
+          }
+        },
+        {
+          "name": "Verify Cart Cleared After Order",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/cart",
+            "description": "Expected: items: []. Cart must be empty after a successful order."
+          }
+        },
+        {
+          "name": "Place Order — Empty Cart (should fail)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/orders",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paymentMethod\": \"credit_card\"\n}"
+            },
+            "description": "Expected: 400 { message: 'Your cart is empty' }"
+          }
+        },
+        {
+          "name": "Place Order — Invalid Payment Method (should fail)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/orders",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paymentMethod\": \"bitcoin\"\n}"
+            },
+            "description": "Expected: 422 validation error. Only credit_card, debit_card, cash_on_delivery, bank_transfer are valid."
+          }
+        },
+        {
+          "name": "Get Order History",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/orders",
+            "description": "Expected: Array of orders, most recent first. Each order shows items with priceAtPurchase."
+          }
+        },
+        {
+          "name": "Get Order Detail",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/orders/{{orderId}}",
+            "description": "Expected: Full order with items, quantities, priceAtPurchase on each item, totalAmount, paymentMethod."
+          }
+        },
+        {
+          "name": "PRICE SNAPSHOT TEST — Get Order After Price Change",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/orders/{{orderId}}",
+            "description": "After manually changing a product's price in the DB, run this again. priceAtPurchase must still show the ORIGINAL price at time of purchase."
+          }
+        },
+        {
+          "name": "IDOR TEST — Access Another User's Order (should fail)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/orders/1",
+            "description": "Login as a DIFFERENT customer and try to access order ID 1. Expected: 404. User can only see their own orders."
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 — Admin",
+      "item": [
+        {
+          "name": "Login — Admin",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@shop.com\",\n  \"password\": \"Admin1234\"\n}"
+            },
+            "description": "Expected: 200. Sets admin cookie. Run this before all Admin requests."
+          }
+        },
+        {
+          "name": "List All Products (Admin)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/admin/products",
+            "description": "Expected: All active products with full taxonomy."
+          }
+        },
+        {
+          "name": "Create Product — No Image",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.id) {",
+                  "  pm.collectionVariables.set('productId', json.id);",
+                  "  console.log('New product ID saved:', json.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/admin/products",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test Product\",\n  \"description\": \"A product created via admin API\",\n  \"price\": 999,\n  \"stock\": 50,\n  \"subCategoryId\": 1\n}"
+            },
+            "description": "Expected: 201 with new product. imagePath will be null — default image shown in frontend."
+          }
+        },
+        {
+          "name": "Create Product — With Image (multipart)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/admin/products",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "name", "value": "Product With Image", "type": "text" },
+                { "key": "description", "value": "This product has an image uploaded", "type": "text" },
+                { "key": "price", "value": "1499", "type": "text" },
+                { "key": "stock", "value": "25", "type": "text" },
+                { "key": "subCategoryId", "value": "1", "type": "text" },
+                { "key": "image", "value": "", "type": "file", "description": "Select any .jpg or .png file from your machine" }
+              ]
+            },
+            "description": "Use form-data (not JSON). Select a real image file. Expected: 201 with imagePath set to the filename. Test: GET /ProductImages/{filename} should return the image."
+          }
+        },
+        {
+          "name": "Update Product",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/api/admin/products/{{productId}}",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price\": 799,\n  \"stock\": 100,\n  \"name\": \"Updated Test Product\"\n}"
+            },
+            "description": "Expected: Updated product. Only sent fields are changed."
+          }
+        },
+        {
+          "name": "Delete Product (Soft Delete)",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/api/admin/products/{{productId}}",
+            "description": "Expected: { message: 'Product deleted successfully' }. Product's isActive becomes false. Order history still intact."
+          }
+        },
+        {
+          "name": "Verify Soft Delete — Product Gone from Listing",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/products/{{productId}}",
+            "description": "Expected: 404. Soft-deleted product no longer appears in public listing."
+          }
+        },
+        {
+          "name": "Create Product — Missing Fields (should fail)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/admin/products",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"\"\n}"
+            },
+            "description": "Expected: 422 with validation errors for missing required fields."
+          }
+        },
+        {
+          "name": "List All Customers",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/admin/customers",
+            "description": "Expected: Array of customers (role=customer only). Shows id, name, email, isLocked. No passwordHash in response."
+          }
+        },
+        {
+          "name": "Toggle Lock Customer",
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/api/admin/customers/{{customerId}}/lock",
+            "description": "Expected: { isLocked: true, message: 'Account locked' }. Run again to unlock. CRITICAL: If customer is currently logged in, their NEXT request must return 401."
+          }
+        },
+        {
+          "name": "IMMEDIATE LOCK TEST — Customer Request After Lock",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/cart",
+            "description": "SWITCH TO CUSTOMER COOKIE before running this. After locking the customer via admin, this request must return 401 immediately. Tests that SessionStore.deleteByUserId() works."
+          }
+        },
+        {
+          "name": "List All Orders (Admin)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/admin/orders",
+            "description": "Expected: All orders from all customers, most recent first."
+          }
+        },
+        {
+          "name": "Get Any Order Detail (Admin)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/admin/orders/{{orderId}}",
+            "description": "Expected: Full order detail including user info. Admin can see any customer's order."
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 — RBAC & Security Tests",
+      "item": [
+        {
+          "name": "Customer accessing Admin route (should fail)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/admin/products",
+            "description": "Login as customer first, then run this. Expected: 403 Forbidden. The authorize('admin') middleware must reject this."
+          }
+        },
+        {
+          "name": "Guest accessing Cart (should fail)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/cart",
+            "description": "Run WITHOUT any cookie. Expected: 401 Unauthorized."
+          }
+        },
+        {
+          "name": "Guest accessing Orders (should fail)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/orders",
+            "description": "Run WITHOUT any cookie. Expected: 401 Unauthorized."
+          }
+        },
+        {
+          "name": "Admin accessing Customer cart (should fail)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/cart/items",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": 1,\n  \"quantity\": 1\n}"
+            },
+            "description": "Login as admin, then run this. Expected: 403. Cart routes are authorize('customer') only."
+          }
+        },
+        {
+          "name": "Rate Limit Test — Rapid Login Attempts",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"wrong@test.com\",\n  \"password\": \"WrongPass99\"\n}"
+            },
+            "description": "Run this 11+ times rapidly. After 10 attempts in 15 minutes, expected: 429 Too Many Requests."
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 — Image Serving",
+      "item": [
+        {
+          "name": "Serve Product Image",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/ProductImages/REPLACE_WITH_ACTUAL_FILENAME.jpg",
+            "description": "Replace filename with the one returned when you created a product with image. Expected: The image file is returned directly. This tests express.static serving."
+          }
+        },
+        {
+          "name": "Non-existent Image",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/ProductImages/does-not-exist.jpg",
+            "description": "Expected: 404. Express.static returns 404 for missing files. Angular should show default placeholder instead."
+          }
+        }
+      ]
+    }
+  ]
+}
