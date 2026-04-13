@@ -1,0 +1,139 @@
+step 1 :-
+project initialization 
+
+npm install express typeorm reflect-metadata mysql2 bcrypt jsonwebtoken cookie-parser express-validator express-rate-limit helmet cors dotenv multer
+npm install --save-dev typescript ts-node nodemon @types/express @types/bcrypt @types/jsonwebtoken @types/cookie-parser @types/cors @types/multer @types/node
+
+this will create tsconfig.json file in the root directory of your project which will contain the configuration for the TypeScript compiler. You can customize this file according to your project's needs.
+-> npx tsc --init
+
+
+Step 2 — 
+Database Schema Design & TypeORM Entity Modeling
+
+npm install better-sqlite3
+npm install --save-dev @types/better-sqlite3
+Design all entities:
+
+step 3 :
+
+
+step 10 : angular setup
+ng new frontend --routing --style=css --skip-tests --standalone=false
+
+
+SSR (Server-Side Rendering)
+-> Renders pages on the server at request time, then sends fully formed HTML to the client.
+
+Faster first-page load (good for SEO and user experience).
+Dynamic data is always fresh.
+
+
+
+
+
+--------------------------------------------------------------------------------
+
+Frontend sends requestAngular service triggers a POST request to /orders with productId and quantity.
+02
+Route matches endpointExpress route definition catches the request and attaches middleware and controller.
+03
+Middleware processes requestAuthentication, validation, and logging middleware run before business logic.
+04
+Controller delegates to serviceController receives request and calls OrderService to handle purchase logic.
+05
+Service executes business rulesService checks stock, calculates total, creates order and order items.
+06
+Repository saves to databaseTypeORM repositories persist order, order items, and update product stock.
+07
+Response returned to frontendController sends JSON response with order confirmation back to Angular UI.
+
+backend/
+├── src/
+│   ├── config/          # Environment configs (datasource.ts, app settings)
+│   ├── entities/        # TypeORM entity classes (User.ts, Product.ts)
+│   ├── migrations/      # Database migration files
+│   ├── seeds/           # Data seeding scripts (e.g., Kaggle CSV integration)
+│   ├── repositories/    # Custom repository logic
+│   ├── services/        # Business logic (e.g., AuthService, ProductService)
+│   ├── controllers/     # Route handlers (REST/GraphQL endpoints)
+│   ├── routes/          # API route definitions
+│   ├── middlewares/     # Express/HTTP middlewares (auth, logging, validation)
+│   ├── utils/           # Helper functions (parsers, formatters, error handling)
+│   ├── constants/       # Centralized constants (roles, error codes)
+│   ├── tests/           # Unit/integration tests
+│   └── index.ts         # App entry point (bootstraps server)
+│
+├── .env                 # Environment variables
+├── ormconfig.ts         # TypeORM CLI config (can point to datasource.ts)
+├── package.json
+└── tsconfig.json
+
+
+frontend/src/app/
+├── core/
+│   ├── services/
+│   │   ├── auth.service.ts
+│   │   ├── product.service.ts
+│   │   ├── cart.service.ts
+│   │   └── order.service.ts
+│   ├── guards/
+│   │   ├── auth.guard.ts
+│   │   └── admin.guard.ts
+│   ├── interceptors/
+│   │   └── http.interceptor.ts
+│   └── models/
+│       ├── user.model.ts
+│       ├── product.model.ts
+│       ├── cart.model.ts
+│       └── order.model.ts
+├── features/
+│   ├── auth/
+│   │   ├── login/
+│   │   ├── register/
+│   │   ├── forgot-password/
+│   │   └── reset-password/
+│   ├── shop/
+│   │   ├── home/
+│   │   ├── product-list/
+│   │   ├── product-detail/
+│   │   ├── cart/
+│   │   ├── checkout/
+│   │   ├── order-confirmation/
+│   │   ├── order-history/
+│   │   └── order-detail/
+│   ├── account/
+│   │   ├── profile/
+│   │   └── change-password/
+│   └── admin/                    ← lazy-loaded module
+│       ├── admin.module.ts
+│       ├── admin-routing.module.ts
+│       ├── products/
+│       ├── customers/
+│       └── orders/
+├── shared/
+│   └── components/
+│       ├── navbar/
+│       └── default-image/
+├── app.module.ts
+├── app-routing.module.ts
+└── app.component.ts
+
+
+
+-- changing from module based to standalone :true
+01
+Enable standalone bootstrapIn main.ts, replace bootstrapModule(AppModule) with bootstrapApplication(AppComponent, { providers: [...] }).
+02
+Convert root componentMark AppComponent with standalone: true and move BrowserModule, RouterModule, HttpClientModule, FormsModule, ReactiveFormsModule into its imports.
+03
+Refactor feature componentsGradually mark feature components as standalone: true and add CommonModule, RouterModule, or ReactiveFormsModule to their imports as needed.
+04
+Replace NgModulesRemove NgModules like AppModule or SharedModule. Instead, import standalone components, directives, and pipes directly where they are used.
+05
+Handle shared utilitiesFor reusable components (e.g., DefaultImageComponent), make them standalone and import them into other components instead of declaring them in a SharedModule.
+06
+Update routingUse provideRouter(routes) in bootstrapApplication instead of RouterModule.forRoot. Feature routes can import standalone components directly.
+07
+Clean up providersMove services and interceptors into bootstrapApplication providers or provide them in standalone components using the providers array.
+

@@ -12,7 +12,7 @@
     "skipLibCheck": true,
      "strictPropertyInitialization": false, 
      "forceConsistentCasingInFileNames": true,
-     "types": ["node"],          // 👈 add this
+     "types": ["node"],          
    
 
   },

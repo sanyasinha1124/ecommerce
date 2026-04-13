@@ -1,0 +1,53 @@
+<!-- checkout.component.html -->
+<div class="container page-wrapper">
+  <div class="page-header"><h1 class="display">Checkout</h1><p>Review your order and choose a payment method</p></div>
+  <div *ngIf="loading" class="shop-loading"><div class="spinner" style="width:40px;height:40px;border-width:3px;"></div></div>
+
+  <div *ngIf="!loading && cart" class="checkout-layout">
+    <div class="checkout-main">
+      <div class="checkout-section">
+        <h3 class="checkout-section__title">Select Payment Method</h3>
+        <div *ngIf="error" class="alert alert-error">{{ error }}</div>
+        <form [formGroup]="form">
+          <div class="payment-methods">
+            <label *ngFor="let m of methods" class="payment-method" [class.selected]="form.value.paymentMethod===m.value">
+              <input type="radio" formControlName="paymentMethod" [value]="m.value" />
+              <span class="payment-method__icon">{{ m.icon }}</span>
+              <span class="payment-method__label">{{ m.label }}</span>
+              <span class="payment-method__check">✓</span>
+            </label>
+          </div>
+          <div *ngIf="form.get('paymentMethod')?.invalid && form.get('paymentMethod')?.touched" class="form-error" style="margin-top:8px;">Please select a payment method</div>
+        </form>
+      </div>
+
+      <div class="checkout-section">
+        <h3 class="checkout-section__title">Order Items ({{ itemCount }})</h3>
+        <div class="checkout-items">
+          <div *ngFor="let item of cart.items" class="checkout-item">
+            <app-default-image [imagePath]="item.product.imagePath" [alt]="item.product.name" imgClass="checkout-item__img"></app-default-image>
+            <div class="checkout-item__details">
+              <p class="checkout-item__name">{{ item.product.name }}</p>
+              <p class="checkout-item__qty">Qty: {{ item.quantity }}</p>
+            </div>
+            <div class="checkout-item__price">₹{{ (item.product.price * item.quantity) | number }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cart-summary">
+      <h3 class="cart-summary__title">Price Details</h3>
+      <div class="cart-summary__row"><span>Price ({{ itemCount }} items)</span><span>₹{{ cart.subtotal | number }}</span></div>
+      <div class="cart-summary__row"><span>Delivery</span><span class="text-pink">FREE</span></div>
+      <div class="cart-summary__divider"></div>
+      <div class="cart-summary__row cart-summary__total"><span>Total Amount</span><span>₹{{ cart.subtotal | number }}</span></div>
+      <div class="checkout-savings">🎉 Secure & encrypted checkout</div>
+      <button class="btn btn-primary btn-full btn-lg" style="margin-top:20px;" [disabled]="placing" (click)="place()">
+        <span *ngIf="placing" class="spinner"></span>
+        {{ placing ? 'Placing Order...' : 'Place Order →' }}
+      </button>
+      <p class="checkout-secure">🔒 Safe and Secure Payments</p>
+    </div>
+  </div>
+</div>

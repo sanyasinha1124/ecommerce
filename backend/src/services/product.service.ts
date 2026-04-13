@@ -1,9 +1,9 @@
 import { AppDataSource } from '../config/data-source';
 import { Product } from '../entities/Product';
-import { Type } from '../entities/Type';
+import { ProductType } from '../entities/ProductType';
 
 const productRepo = () => AppDataSource.getRepository(Product);
-const typeRepo = () => AppDataSource.getRepository(Type);
+const typeRepo = () => AppDataSource.getRepository(ProductType);
 
 // Shape of query params coming from the controller
 export interface ProductQuery {

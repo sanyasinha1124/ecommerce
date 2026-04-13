@@ -93,6 +93,20 @@ export class AuthService {
     };
   }
 
+  // important for frontend to call this method "resetPassword" — it's used in auth.service.ts and auth.controller.ts
+
+static async getMe(userId: number) {
+  const user = await userRepo().findOne({
+    where: { id: userId },
+    select: ['id', 'name', 'email', 'role', 'isLocked'],
+  });
+
+  if (!user) throw { status: 404, message: 'User not found' };
+  if (user.isLocked) throw { status: 403, message: 'Account is locked' };
+
+  return { id: user.id, name: user.name, email: user.email, role: user.role };
+}
+
   static async resetPassword(body: { email: string; code: string; newPassword: string }) {
     const { email, code, newPassword } = body;
 
@@ -119,4 +133,40 @@ export class AuthService {
     // Invalidate all active sessions for this user — force re-login with new password
     SessionStore.deleteByUserId(user.id);
   }
+
+  static async updateProfile(userId: number, body: { name: string; email: string }) {
+  const { name, email } = body;
+
+  // Check new email isn't taken by another user
+  const conflict = await userRepo().findOneBy({ email });
+  if (conflict && conflict.id !== userId) {
+    throw { status: 409, message: 'Email already in use' };
+  }
+
+  const user = await userRepo().findOneBy({ id: userId });
+  if (!user) throw { status: 404, message: 'User not found' };
+
+  user.name  = name;
+  user.email = email;
+  await userRepo().save(user);
+
+  return { id: user.id, name: user.name, email: user.email, role: user.role };
+}
+
+static async changePassword(userId: number, body: {
+  currentPassword: string;
+  newPassword: string;
+}) {
+  const user = await userRepo().findOneBy({ id: userId });
+  if (!user) throw { status: 404, message: 'User not found' };
+
+  const match = await bcrypt.compare(body.currentPassword, user.passwordHash);
+  if (!match) throw { status: 401, message: 'Current password is incorrect' };
+
+  user.passwordHash = await bcrypt.hash(body.newPassword, BCRYPT_ROUNDS);
+  await userRepo().save(user);
+
+  // Invalidate all sessions — force re-login with new password
+  SessionStore.deleteByUserId(userId);
+}
 }

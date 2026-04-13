@@ -1,0 +1,29 @@
+<!-- order-confirmation.component.html -->
+<div class="container page-wrapper" *ngIf="order">
+  <div class="confirmation fade-up">
+    <div class="confirmation__icon">✅</div>
+    <h1 class="confirmation__title display">Order Confirmed!</h1>
+    <p class="confirmation__subtitle">Thank you! Your order has been placed successfully.</p>
+    <div class="confirmation__meta">
+      <div class="confirmation__meta-item"><span class="confirmation__meta-label">Order ID</span><span class="confirmation__meta-value">#{{ order.id }}</span></div>
+      <div class="confirmation__meta-item"><span class="confirmation__meta-label">Date</span><span class="confirmation__meta-value">{{ order.placedAt | date:'mediumDate' }}</span></div>
+      <div class="confirmation__meta-item"><span class="confirmation__meta-label">Payment</span><span class="confirmation__meta-value">{{ labels[order.paymentMethod] }}</span></div>
+      <div class="confirmation__meta-item"><span class="confirmation__meta-label">Total</span><span class="confirmation__meta-value text-pink">₹{{ order.totalAmount | number }}</span></div>
+    </div>
+    <div class="confirmation__items">
+      <h3 class="confirmation__items-title">Items Ordered</h3>
+      <div *ngFor="let item of order.items" class="confirmation__item">
+        <app-default-image [imagePath]="item.product?.imagePath ?? null" [alt]="item.product?.name ?? 'Product'" imgClass="confirmation__item-img"></app-default-image>
+        <div class="confirmation__item-details">
+          <p class="confirmation__item-name">{{ item.product?.name ?? 'Product no longer available' }}</p>
+          <p class="confirmation__item-meta">Qty: {{ item.quantity }} · ₹{{ item.priceAtPurchase | number }} each</p>
+        </div>
+        <div class="confirmation__item-total">₹{{ (item.priceAtPurchase * item.quantity) | number }}</div>
+      </div>
+    </div>
+    <div class="confirmation__actions">
+      <a routerLink="/orders"   class="btn btn-outline">View All Orders</a>
+      <a routerLink="/products" class="btn btn-primary">Continue Shopping →</a>
+    </div>
+  </div>
+</div>

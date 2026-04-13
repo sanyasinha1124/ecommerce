@@ -1,0 +1,34 @@
+
+server.ts and app.ts are deliberately separate. app.ts configures Express (middleware, routes), server.ts starts the actual server. This means you can import app in tests without binding to a port.
+
+In development, you run two processes — backend on 3000, Angular dev server on 4200 
+
+
+Why soft deletes on Product (isActive: boolean): If an admin deletes a product that someone already bought, the OrderItem has a foreign key to that product row. Hard deleting the product would violate the foreign key constraint and destroy order history. Soft delete marks isActive = false so the product disappears from listings but the row stays in the database — order history stays intact.
+
+
+Two-Layer Authentication :- 
+Every protected request must pass two independent checks:
+
+Request
+  ↓
+Layer 1: jwt.verify(cookie, secret)
+  → "Is this JWT cryptographically valid and not expired?"
+  → Stateless — no database hit
+  ↓ ✓
+Layer 2: SessionStore.get(payload.sessionId)
+  → "Is this session still in the in-memory Map?"
+  → Catches logouts and immediate account locks
+  ↓ ✓
+req.user = { userId, role, sessionId }
+  → Controller runs
+
+Why both layers? A JWT alone cannot be invalidated before it expires. If an admin locks a customer's account, their JWT is still cryptographically valid for 8 hours. The session store solves this — SessionStore.deleteByUserId(id) removes their entry instantly. Their very next request hits Layer 2, finds nothing, and returns 401.
+
+const sessionStore = new Map<string, { userId, role }>();
+
+SessionStore.set(sessionId, data)      // on login
+SessionStore.get(sessionId)            // on every protected request
+SessionStore.delete(sessionId)         // on logout
+SessionStore.deleteByUserId(userId)    // on account lock — removes ALL sessions for that user
+

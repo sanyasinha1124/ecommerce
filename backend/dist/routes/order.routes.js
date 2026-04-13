@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const order_controller_1 = require("../controllers/order.controller");
+const authenticate_1 = require("../middleware/authenticate");
+const authorize_1 = require("../middleware/authorize");
+const router = (0, express_1.Router)();
+router.use(authenticate_1.authenticate, (0, authorize_1.authorize)('customer'));
+router.post('/', order_controller_1.placeOrderValidation, order_controller_1.OrderController.placeOrder);
+router.get('/', order_controller_1.OrderController.getOrders);
+router.get('/:id', order_controller_1.OrderController.getOrderDetail);
+exports.default = router;

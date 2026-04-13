@@ -1,0 +1,47 @@
+<nav class="navbar">
+  <div class="navbar__inner container">
+
+    <a routerLink="/" class="navbar__logo">StyleHub</a>
+
+    <div class="navbar__links">
+      <a routerLink="/"        routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}">Home</a>
+      <a routerLink="/products" routerLinkActive="active">Shop</a>
+    </div>
+
+    <div class="navbar__actions">
+      <ng-container *ngIf="currentUser$ | async as user; else guestTpl">
+
+        <a *ngIf="user.role === 'customer'" routerLink="/cart" class="navbar__icon-btn">
+          <span class="navbar__cart-icon">🛍</span>
+          <span *ngIf="cartCount > 0" class="navbar__badge">{{ cartCount }}</span>
+        </a>
+
+        <a *ngIf="user.role === 'admin'" routerLink="/admin" class="btn btn-outline btn-sm">
+          Admin Panel
+        </a>
+
+        <div class="navbar__user-menu" (click)="menuOpen = !menuOpen">
+          <div class="navbar__avatar">{{ user.name.charAt(0).toUpperCase() }}</div>
+
+          <div class="navbar__dropdown" *ngIf="menuOpen" (click)="$event.stopPropagation()">
+            <div class="navbar__dropdown-header">
+              <p class="navbar__dropdown-name">{{ user.name }}</p>
+              <p class="navbar__dropdown-email">{{ user.email }}</p>
+            </div>
+            <a *ngIf="user.role==='customer'" routerLink="/orders"          (click)="menuOpen=false">📦 My Orders</a>
+            <a *ngIf="user.role==='customer'" routerLink="/profile"         (click)="menuOpen=false">👤 Edit Profile</a>
+            <a *ngIf="user.role==='customer'" routerLink="/change-password" (click)="menuOpen=false">🔑 Change Password</a>
+            <div class="navbar__dropdown-divider"></div>
+            <button (click)="logout()">Sign Out</button>
+          </div>
+        </div>
+
+      </ng-container>
+
+      <ng-template #guestTpl>
+        <a routerLink="/login"    class="btn btn-ghost btn-sm">Login</a>
+        <a routerLink="/register" class="btn btn-primary btn-sm">Sign Up</a>
+      </ng-template>
+    </div>
+  </div>
+</nav>

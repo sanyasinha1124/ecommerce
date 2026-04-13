@@ -1,0 +1,20 @@
+modulebased -
+files needed - At least 2 (Component + Module)
+module me declarations me dalege component and export me bhi inside @NgModule
+
+ng new my-module-app --standalone=false
+
+@NgModule({
+  declarations: [
+    AppComponent // Registering the main component
+  ],
+  imports: [
+    BrowserModule // Importing built-in browser features
+  ],
+  providers: [], // Services go here
+  bootstrap: [AppComponent] // Starting point of the app
+})
+
+standalone :true -direct we will import it
+older than 16 -- ng new my-app --standalone
+17 + -- ng new my-standalone-app

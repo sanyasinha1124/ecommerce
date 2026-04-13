@@ -1,0 +1,12 @@
+.admin-shell { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
+.admin-sidebar { background: var(--charcoal); color: var(--white); display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+.admin-sidebar__logo { font-family: var(--font-display); font-size: 20px; color: var(--white); padding: 28px 24px 24px; border-bottom: 1px solid rgba(255,255,255,0.1); letter-spacing: -0.3px; }
+.admin-sidebar__logo span { display: block; font-size: 10px; font-family: var(--font-body); font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--pink); margin-top: 4px; }
+.admin-nav { flex: 1; padding: 16px 0; }
+.admin-nav a { display: flex; align-items: center; gap: 12px; padding: 13px 24px; font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.65); transition: all var(--transition); border-left: 3px solid transparent; }
+.admin-nav a:hover { color: var(--white); background: rgba(255,255,255,0.05); }
+.admin-nav a.active { color: var(--white); background: rgba(255,63,108,0.15); border-left-color: var(--pink); }
+.admin-sidebar__footer { padding: 20px 24px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; gap: 10px; }
+.admin-sidebar__back, .admin-sidebar__logout { font-size: 12px; font-weight: 500; padding: 8px 0; color: rgba(255,255,255,0.5); background: none; border: none; text-align: left; cursor: pointer; transition: color var(--transition); }
+.admin-sidebar__back:hover, .admin-sidebar__logout:hover { color: var(--white); }
+.admin-main { background: var(--grey-light); padding: 36px; min-height: 100vh; }

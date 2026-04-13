@@ -1,0 +1,342 @@
+<!-- ── Announcement Bar ──────────────────────────────────────── -->
+<div class="announce-bar">
+  <div class="announce-bar__inner">
+    <span>🚚 Free delivery on orders above ₹999</span>
+    <span class="announce-bar__sep">·</span>
+    <span>↩️ 30-day easy returns</span>
+    <span class="announce-bar__sep">·</span>
+    <span>🔒 Secure checkout</span>
+  </div>
+</div>
+
+<!-- ── Hero Slider ───────────────────────────────────────────── -->
+<section class="hero">
+  <!-- transform: translateX() - for sliders -->
+  <div class="hero__track" [style.transform]="'translateX(-' + (activeBanner * 100) + '%)'">
+    <div *ngFor="let b of banners" class="hero__slide"
+         [style.background]="b.accent">
+      <div class="hero__slide-inner container">
+        <div class="hero__text">
+          <span class="hero__eyebrow">{{ b.label }}</span>
+          <h1 class="hero__headline" [innerHTML]="b.headline.replace('\n','<br>')"></h1>
+          <p class="hero__sub">{{ b.sub }}</p>
+          <button class="hero__cta" (click)="browse('type', b.typeId)"
+                  [style.background]="b.highlight">
+            {{ b.cta }} →
+          </button>
+        </div>
+        <div class="hero__visual">
+          <div class="hero__circle" [style.border-color]="b.highlight + '33'"></div>
+          <div class="hero__circle hero__circle--sm" [style.border-color]="b.highlight + '22'"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dots -->
+  <div class="hero__dots">
+    <button *ngFor="let b of banners; let i = index"
+            class="hero__dot" [class.active]="i === activeBanner"
+            (click)="activeBanner = i"></button>
+  </div>
+
+  <!-- Prev / Next -->
+  <button class="hero__arrow hero__arrow--prev"
+          (click)="activeBanner = (activeBanner - 1 + banners.length) % banners.length">‹</button>
+  <button class="hero__arrow hero__arrow--next"
+          (click)="activeBanner = (activeBanner + 1) % banners.length">›</button>
+</section>
+
+<!-- ── Search ────────────────────────────────────────────────── -->
+<section class="home-search">
+  <div class="container">
+    <div class="home-search__bar" [class.focused]="searchFocused">
+      <span class="home-search__icon">🔍</span>
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        (keyup.enter)="search()"
+        (focus)="searchFocused = true"
+        (blur)="searchFocused = false"
+        placeholder="Search for keyboards, chairs, notebooks…"
+        class="home-search__input"
+      />
+      <button class="home-search__btn" (click)="search()">Search</button>
+    </div>
+
+    <!-- Quick suggestion chips -->
+    <div class="home-search__chips">
+      <span class="home-search__chips-label">Popular:</span>
+      <button *ngFor="let s of searchSuggestions"
+              class="home-search__chip"
+              (click)="searchSuggestion(s)">{{ s }}</button>
+    </div>
+  </div>
+</section>
+
+<!-- ── Stats Strip ───────────────────────────────────────────── -->
+<section class="stats-strip">
+  <div class="container stats-strip__inner">
+    <div class="stat-item">
+      <span class="stat-item__num">25+</span>
+      <span class="stat-item__label">Products</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item">
+      <span class="stat-item__num">3</span>
+      <span class="stat-item__label">Categories</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item">
+      <span class="stat-item__num">₹299</span>
+      <span class="stat-item__label">Starting From</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item">
+      <span class="stat-item__num">100%</span>
+      <span class="stat-item__label">Authentic</span>
+    </div>
+  </div>
+</section>
+
+<!-- ── Shop by Category ──────────────────────────────────────── -->
+<section class="section-wrap container">
+  <div class="section-head">
+    <div>
+      <span class="eyebrow">Curated Collections</span>
+      <h2 class="section-title">Shop by Category</h2>
+    </div>
+    <a routerLink="/products" class="see-all-link">View All →</a>
+  </div>
+
+  <div class="cat-grid">
+    <div *ngFor="let t of taxonomy" class="cat-card"
+         (click)="browse('type', t.id)"
+         [style.background]="typeGradient(t.name)">
+      <div class="cat-card__icon">{{ typeIcon(t.name) }}</div>
+      <div class="cat-card__body">
+        <h3 class="cat-card__name">{{ t.name }}</h3>
+        <span class="cat-card__count">
+          {{ t.categories ? t.categories.length : 0 }} collections
+        </span>
+      </div>
+      <div class="cat-card__arrow">→</div>
+
+      <!-- Subcategory chips -->
+      <div class="cat-card__subs" *ngIf="t.categories?.length">
+        <span *ngFor="let c of t.categories.slice(0, 2)" class="cat-card__sub">
+          {{ c.name }}
+        </span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Flash Deal Banner ─────────────────────────────────────── -->
+<section class="deal-banner">
+  <div class="container deal-banner__inner">
+    <div class="deal-banner__left">
+      <span class="deal-banner__eyebrow">⚡ Limited Time Offer</span>
+      <h2 class="deal-banner__title">Deal of the Day</h2>
+      <p class="deal-banner__sub">Up to 40% off on premium ergonomic furniture</p>
+      <button class="deal-banner__btn" (click)="browse('type', 2)">Shop Now →</button>
+    </div>
+    <div class="deal-banner__right">
+      <p class="deal-banner__countdown-label">Ends in</p>
+      <div class="deal-banner__countdown">
+        <div class="countdown-block">
+          <span class="countdown-num">{{ dealCountdown.h }}</span>
+          <span class="countdown-label">Hours</span>
+        </div>
+        <span class="countdown-sep">:</span>
+        <div class="countdown-block">
+          <span class="countdown-num">{{ dealCountdown.m }}</span>
+          <span class="countdown-label">Mins</span>
+        </div>
+        <span class="countdown-sep">:</span>
+        <div class="countdown-block">
+          <span class="countdown-num">{{ dealCountdown.s }}</span>
+          <span class="countdown-label">Secs</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Featured Products ─────────────────────────────────────── -->
+<section class="section-wrap container">
+  <div class="section-head">
+    <div>
+      <span class="eyebrow">The Collection</span>
+      <h2 class="section-title">Featured Products</h2>
+    </div>
+    <a routerLink="/products" class="see-all-link">See All →</a>
+  </div>
+
+  <div *ngIf="loading" class="shop-loading">
+    <div class="spinner" style="width:40px;height:40px;border-width:3px;"></div>
+  </div>
+
+  <div *ngIf="!loading" class="product-grid">
+    <div *ngFor="let p of featured; let i = index"
+         class="product-card"
+         [routerLink]="['/products', p.id]"
+         [style.animation-delay]="(i * 0.08) + 's'">
+      <div class="product-card__img-wrap">
+        <app-default-image
+          [imagePath]="p.imagePath"
+          [alt]="p.name"
+          imgClass="product-card__img">
+        </app-default-image>
+        <div class="product-card__badge" *ngIf="p.stock === 0">
+          <span class="badge badge-red">Out of Stock</span>
+        </div>
+        <div class="product-card__badge" *ngIf="p.stock > 0 && p.stock <= 5">
+          <span class="badge badge-amber">Only {{ p.stock }} left</span>
+        </div>
+        <div class="product-card__overlay">
+          <span class="product-card__quick-view">Quick View</span>
+        </div>
+      </div>
+      <div class="product-card__body">
+        <p class="product-card__category">
+          {{ p.subCategory.category.type.name }} · {{ p.subCategory.name }}
+        </p>
+        <h3 class="product-card__name">{{ p.name }}</h3>
+        <div class="product-card__footer">
+          <span class="product-card__price">₹{{ p.price | number }}</span>
+          <span class="product-card__stock" *ngIf="p.stock > 0">In Stock</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Horizontal Scrolling Strip — New Arrivals ─────────────── -->
+<section class="arrivals-section">
+  <div class="arrivals-section__head container">
+    <div>
+      <span class="eyebrow">Just Landed</span>
+      <h2 class="section-title" style="color:#fff;">New Arrivals</h2>
+    </div>
+    <a routerLink="/products" class="see-all-link" style="color:rgba(255,255,255,0.7);">
+      View All →
+    </a>
+  </div>
+
+  <div class="arrivals-track-wrap">
+    <div class="arrivals-track">
+      <!-- doubled for infinite feel -->
+      <ng-container *ngFor="let p of newArrivals.concat(newArrivals)">
+        <div class="arrival-card" [routerLink]="['/products', p.id]">
+          <div class="arrival-card__img">
+            <app-default-image
+              [imagePath]="p.imagePath"
+              [alt]="p.name"
+              imgClass="arrival-img">
+            </app-default-image>
+          </div>
+          <div class="arrival-card__body">
+            <p class="arrival-card__cat">{{ p.subCategory.category.type.name }}</p>
+            <p class="arrival-card__name">{{ p.name }}</p>
+            <p class="arrival-card__price">₹{{ p.price | number }}</p>
+          </div>
+        </div>
+      </ng-container>
+    </div>
+  </div>
+</section>
+
+<!-- ── Why Choose Us ─────────────────────────────────────────── -->
+<section class="benefits-section container">
+  <div class="section-head">
+    <div>
+      <span class="eyebrow">Our Promise</span>
+      <h2 class="section-title">Why Choose StyleHub?</h2>
+    </div>
+  </div>
+
+  <div class="benefits-grid">
+    <div *ngFor="let b of benefits; let i = index"
+         class="benefit-card"
+         [style.animation-delay]="(i * 0.1) + 's'">
+      <div class="benefit-card__icon">{{ b.icon }}</div>
+      <h3 class="benefit-card__title">{{ b.title }}</h3>
+      <p class="benefit-card__text">{{ b.text }}</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── Testimonials ──────────────────────────────────────────── -->
+<section class="testimonials-section">
+  <div class="container">
+    <div class="section-head" style="justify-content:center;text-align:center;">
+      <div>
+        <span class="eyebrow">Happy Customers</span>
+        <h2 class="section-title">What People Say</h2>
+      </div>
+    </div>
+
+    <div class="testimonials-track">
+      <div *ngFor="let t of testimonials; let i = index"
+           class="testimonial-card"
+           [class.active]="i === activeTestimonial">
+        <div class="testimonial-card__stars">
+          <span *ngFor="let s of stars(t.rating)" class="star">★</span>
+        </div>
+        <p class="testimonial-card__text">"{{ t.text }}"</p>
+        <div class="testimonial-card__meta">
+          <div class="testimonial-card__avatar">
+            {{ t.name.charAt(0) }}
+          </div>
+          <div>
+            <p class="testimonial-card__name">{{ t.name }}</p>
+            <p class="testimonial-card__loc">{{ t.location }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="testimonials-dots">
+      <button *ngFor="let t of testimonials; let i = index"
+              class="hero__dot"
+              [class.active]="i === activeTestimonial"
+              (click)="activeTestimonial = i">
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- ── Newsletter ────────────────────────────────────────────── -->
+<section class="newsletter-section">
+  <div class="container newsletter-section__inner">
+    <div class="newsletter-section__text">
+      <h2 class="newsletter-section__title">Stay in the Loop</h2>
+      <p class="newsletter-section__sub">
+        Get exclusive deals, early access to new arrivals and style tips — straight to your inbox.
+      </p>
+    </div>
+    <div class="newsletter-section__form">
+      <input type="email" class="newsletter-input"
+             placeholder="Enter your email address" />
+      <button class="newsletter-btn">Subscribe →</button>
+    </div>
+  </div>
+</section>
+
+<!-- ── Footer Strip ──────────────────────────────────────────── -->
+<section class="footer-strip">
+  <div class="container footer-strip__inner">
+    <div class="footer-strip__brand">
+      <p class="footer-strip__logo">StyleHub</p>
+      <p class="footer-strip__tagline">India's premium multi-category store</p>
+    </div>
+    <div class="footer-strip__links">
+      <a routerLink="/products">Shop</a>
+      <a routerLink="/login">Login</a>
+      <a routerLink="/register">Register</a>
+      <a routerLink="/orders">Orders</a>
+    </div>
+    <p class="footer-strip__copy">© 2026 StyleHub. All rights reserved.</p>
+  </div>
+</section>

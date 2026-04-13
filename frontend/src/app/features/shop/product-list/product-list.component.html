@@ -1,0 +1,224 @@
+ <div class="shop-layout container page-wrapper">
+  <!-- <aside class="filter-sidebar" [class.open]="filterOpen">
+    <div class="filter-sidebar__header">
+      <h3>Filters</h3>
+      <button class="filter-clear-all" *ngIf="activeFilters.length" (click)="clearAll()">Clear All</button>
+    </div>
+    <form [formGroup]="filterForm">
+      <div class="filter-section">
+        <label class="filter-label">Search</label>
+        <input type="text" formControlName="keyword" class="form-control" placeholder="Keywords…" />
+      </div>
+      <div class="filter-section">
+        <label class="filter-label">Type</label>
+        <select class="form-control" [value]="filterForm.value.typeId" (change)="onTypeChange($event)">
+          <option value="">All Types</option>
+          <option *ngFor="let t of taxonomy" [value]="t.id">{{ t.name }}</option>
+        </select>
+      </div>
+      <div class="filter-section" *ngIf="filterForm.value.typeId">
+        <label class="filter-label">Category</label>
+        <select class="form-control" [value]="filterForm.value.categoryId" (change)="onCatChange($event)">
+          <option value="">All Categories</option>
+          <option *ngFor="let c of catsForType(filterForm.value.typeId)" [value]="c.id">{{ c.name }}</option>
+        </select>
+      </div>
+      <div class="filter-section" *ngIf="filterForm.value.categoryId">
+        <label class="filter-label">Sub-Category</label>
+        <select class="form-control" [value]="filterForm.value.subCategoryId" (change)="onSubChange($event)">
+          <option value="">All Sub-Categories</option>
+          <option *ngFor="let s of subsForCat(filterForm.value.categoryId)" [value]="s.id">{{ s.name }}</option>
+        </select>
+      </div>
+      <div class="filter-section">
+        <label class="filter-label">Price Range (₹)</label>
+        <div class="price-range">
+          <input type="number" formControlName="minPrice" class="form-control" placeholder="Min" (change)="applyFilters()" />
+          <span class="price-range__sep">–</span>
+          <input type="number" formControlName="maxPrice" class="form-control" placeholder="Max" (change)="applyFilters()" />
+        </div>
+      </div>
+      <div class="filter-section">
+        <label class="filter-checkbox">
+          <input type="checkbox" formControlName="inStockOnly" (change)="applyFilters()" />
+          <span>In Stock Only</span>
+        </label>
+      </div>
+    </form>
+  </aside> -->
+
+
+  <div style="width: 100%; display: block; margin-bottom: 30px;">
+  
+  <section style="
+      background: #ffffff; 
+      border-radius: 12px; 
+      padding: 24px; 
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08); 
+      border: 1px solid #eef2f6;
+  ">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #f0f0f0; padding-bottom: 15px;">
+      <div>
+        <h3 style="margin: 0; font-size: 1.25rem; color: #1a1a1a; font-weight: 700; letter-spacing: -0.5px;">Filters & Sorting</h3>
+        <p style="margin: 4px 0 0; font-size: 0.85rem; color: #888;">Refine your search results</p>
+      </div>
+      <button *ngIf="activeFilters.length" (click)="clearAll()" style="
+          background: #fff; 
+          color: #ff4d4f; 
+          border: 1px solid #ff4d4f; 
+          padding: 8px 16px; 
+          border-radius: 8px; 
+          cursor: pointer; 
+          font-size: 0.85rem;
+          font-weight: 600;
+          transition: all 0.2s ease;
+      ">Reset All</button>
+    </div>
+
+    <form [formGroup]="filterForm" style="
+        display: grid; 
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+        gap: 20px; 
+        align-items: end;
+    ">
+      
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <label style="font-size: 0.75rem; font-weight: 700; color: #444; text-transform: uppercase;">Keywords</label>
+        <div style="position: relative;">
+          <input type="text" formControlName="keyword" placeholder="Search products..." style="width: 100%; padding: 12px; border: 1px solid #ced4da; border-radius: 10px; font-size: 0.95rem; outline: none; background: #fdfdfd;">
+        </div>
+      </div>
+
+      <!-- <div style="display: flex; flex-direction: column; gap: 8px;">
+        <label style="font-size: 0.75rem; font-weight: 700; color: #444; text-transform: uppercase;">Sort By</label>
+        <select (change)="applyFilters()" style="width: 100%; padding: 12px; border: 1px solid #ced4da; border-radius: 10px; font-size: 0.95rem; background: white; cursor: pointer;">
+          <option value="newest">Latest Arrivals</option>
+          <option value="priceLow">Price: Low to High</option>
+          <option value="priceHigh">Price: High to Low</option>
+          <option value="rating">Customer Rating</option>
+        </select>
+      </div> -->
+
+    <select formControlName="sortBy" (change)="applyFilters()" ...>
+  <option value="newest">Latest Arrivals</option>
+  <option value="priceLow">Price: Low to High</option>
+  <option value="priceHigh">Price: High to Low</option>
+</select>
+
+<input type="number" formControlName="minPrice" placeholder="Min" />
+<input type="number" formControlName="maxPrice" placeholder="Max" />
+
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <label style="font-size: 0.75rem; font-weight: 700; color: #444; text-transform: uppercase;">Category</label>
+        <select [value]="filterForm.value.typeId" (change)="onTypeChange($event)" style="width: 100%; padding: 12px; border: 1px solid #ced4da; border-radius: 10px; font-size: 0.95rem; background: white; cursor: pointer;">
+          <option value="">All Types</option>
+          <option *ngFor="let t of taxonomy" [value]="t.id">{{ t.name }}</option>
+        </select>
+      </div>
+
+      <!-- <div style="display: flex; flex-direction: column; gap: 8px;">
+        <label style="font-size: 0.75rem; font-weight: 700; color: #444; text-transform: uppercase;">Price Range (₹)</label>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <input type="number" formControlName="minPrice" placeholder="Min" style="width: 100%; padding: 12px; border: 1px solid #ced4da; border-radius: 10px; font-size: 0.95rem;">
+          <span style="color: #adb5bd;">–</span>
+          <input type="number" formControlName="maxPrice" placeholder="Max" style="width: 100%; padding: 12px; border: 1px solid #ced4da; border-radius: 10px; font-size: 0.95rem;">
+        </div>
+      </div> -->
+
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+  <label style="font-size: 0.75rem; font-weight: 700; color: #444; text-transform: uppercase;">Price Range (₹)</label>
+  <div style="display: flex; align-items: center; gap: 8px;">
+    <input type="number" formControlName="minPrice" (input)="applyFilters()" placeholder="Min" style="width: 100%; padding: 12px; border: 1px solid #ced4da; border-radius: 10px; font-size: 0.95rem;">
+    <span style="color: #adb5bd;">–</span>
+    <input type="number" formControlName="maxPrice" (input)="applyFilters()" placeholder="Max" style="width: 100%; padding: 12px; border: 1px solid #ced4da; border-radius: 10px; font-size: 0.95rem;">
+  </div>
+</div>
+
+      <div style="display: flex; gap: 20px; padding-bottom: 12px;">
+        <label style="display: flex; align-items: center; cursor: pointer; font-size: 0.9rem; font-weight: 600; color: #1a1a1a;">
+          <input type="checkbox" formControlName="inStockOnly" (change)="applyFilters()" style="width: 20px; height: 20px; margin-right: 10px; accent-color: #000;">
+          In Stock
+        </label>
+        <label style="display: flex; align-items: center; cursor: pointer; font-size: 0.9rem; font-weight: 600; color: #1a1a1a;">
+          <input type="checkbox" (change)="applyFilters()" style="width: 20px; height: 20px; margin-right: 10px; accent-color: #000;">
+          Offers
+        </label>
+      </div>
+
+    </form>
+  </section>
+</div>
+
+
+  <div class="shop-main">
+    <div class="shop-toolbar">
+      <div class="shop-toolbar__left">
+        <button class="btn btn-ghost btn-sm filter-toggle" (click)="filterOpen = !filterOpen">☰ Filters</button>
+        <span class="shop-result-count" *ngIf="!loading">{{ total }} product{{ total !== 1 ? 's' : '' }} found</span>
+      </div>
+    </div>
+
+    <div class="filter-chips" *ngIf="activeFilters.length">
+      <span *ngFor="let f of activeFilters" class="filter-chip">
+        {{ f.label }}<button (click)="clearFilter(f.key)">✕</button>
+      </span>
+    </div>
+
+    <div *ngIf="loading" class="shop-loading">
+      <div class="spinner" style="width:40px;height:40px;border-width:3px;"></div>
+    </div>
+
+    <div *ngIf="!loading && products.length" class="product-grid fade-up">
+      <div *ngFor="let p of products" class="product-card" [routerLink]="['/products', p.id]">
+        <div class="product-card__img-wrap">
+          <app-default-image [imagePath]="p.imagePath" [alt]="p.name" imgClass="product-card__img"></app-default-image>
+          
+          <div class="product-id-tag" style="position: absolute; top: 8px; left: 8px; background: rgba(0,0,0,0.6); color: #fff; padding: 2px 6px; border-radius: 4px; font-size: 10px;">
+            ID: {{ p.id }}
+          </div>
+
+          <div class="product-card__badge" *ngIf="p.stock === 0">
+            <span class="badge badge-red">Out of Stock</span>
+          </div>
+        </div>
+
+        <div class="product-card__body">
+          <p class="product-card__category">
+            {{ p.subCategory.category.type.name || 'General' }}
+          </p>
+          
+          <h3 class="product-card__name">{{ p.name }}</h3>
+          
+          <p class="product-card__description" style="font-size: 0.85rem; color: #666; margin: 4px 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+            {{ p.description }}
+          </p>
+          
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+            <p class="product-card__price" style="margin: 0; font-weight: bold; color: #222;">
+              ₹{{ p.price | number }}
+            </p>
+            <span style="font-size: 0.8rem; color: #888;">
+              Stock: {{ p.stock }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="!loading && !products.length" class="empty-state">
+      <div class="empty-state__icon">🔍</div>
+      <h3 class="empty-state__title">No products found</h3>
+      <p class="empty-state__text">Try adjusting your filters or search term</p>
+      <button class="btn btn-outline" (click)="clearAll()">Clear All Filters</button>
+    </div>
+
+    <div *ngIf="!loading && totalPages > 1" class="pagination">
+      <button class="pagination__btn" [disabled]="currentPage===1" (click)="goToPage(currentPage-1)">‹</button>
+      <ng-container *ngFor="let p of pages">
+        <button *ngIf="p !== -1" class="pagination__btn" [class.active]="p===currentPage" (click)="goToPage(p)">{{ p }}</button>
+        <span *ngIf="p === -1" class="pagination__ellipsis">…</span>
+      </ng-container>
+      <button class="pagination__btn" [disabled]="currentPage===totalPages" (click)="goToPage(currentPage+1)">›</button>
+    </div>
+  </div>
+</div> 

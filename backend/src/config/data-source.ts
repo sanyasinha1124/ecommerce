@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import * as dotenv from 'dotenv';
 import { DataSource } from 'typeorm';
 import { User } from '../entities/User';
-import { Type } from '../entities/Type';
+import { ProductType } from '../entities/ProductType';
 import { Category } from '../entities/Category';
 import { SubCategory } from '../entities/SubCategory';
 import { Product } from '../entities/Product';
@@ -27,7 +27,7 @@ export const AppDataSource = new DataSource({
   logging: process.env.DB_LOGGING === 'true' || true,
   entities: [
     User,
-    Type,
+    ProductType,
     Category,
     SubCategory,
     Product,
@@ -37,5 +37,11 @@ export const AppDataSource = new DataSource({
     OrderItem,
   ],
   // migrations: [process.env.DB_MIGRATIONS as string],
-  migrations: ['src/migrations/**/*.ts'],
+  // migrations: ['src/migrations/**/*.ts'],
+  // This detects the file extension automatically based on the environment
+  migrations: [
+    process.env.NODE_ENV === 'production' 
+      ? 'dist/migrations/**/*.js' 
+      : 'src/migrations/**/*.ts'
+  ],
 });

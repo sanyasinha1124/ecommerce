@@ -1,0 +1,230 @@
+<!-- horizontal layout -->
+<!-- <div class="admin-shell">
+  <aside class="admin-sidebar">
+    <div class="admin-sidebar__logo">
+      StyleHub
+      <span>Admin Panel</span>
+    </div>
+
+    <nav class="admin-nav">
+      <a routerLink="/admin/products"  routerLinkActive="active">📦 Products</a>
+      <a routerLink="/admin/customers" routerLinkActive="active">👥 Customers</a>
+      <a routerLink="/admin/orders"    routerLinkActive="active">🧾 Orders</a>
+    </nav>
+
+    <div class="admin-sidebar__footer">
+      <a routerLink="/" class="admin-sidebar__back">← Back to Store</a>
+      <button (click)="logout()" class="admin-sidebar__logout">Sign Out</button>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <router-outlet></router-outlet>
+  </main>
+</div> -->
+<!-- ------------------------------------------------------------------------------------------------------------ -->
+
+ <div class="admin-shell" style="
+    --noir-black: #000000;
+    --noir-white: #ffffff;
+    --noir-grey: #f5f5f5;
+    --border-stark: 2px solid #000000;
+    display: flex;
+    flex-direction: column; /* Stack navigation on top of content */
+    min-height: 100vh;
+    background: var(--noir-white);
+    font-family: 'DM Sans', sans-serif;
+">
+  
+  <!-- <header style="
+      width: 100%;
+      background: var(--noir-white);
+      border-bottom: var(--border-stark);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+  ">
+    <div style="
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center; 
+        padding: 20px 40px;
+        border-bottom: 1px solid #eeeeee;
+    "> -->
+      <!-- <div style="font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 900; letter-spacing: -1.5px;">
+        STYLEHUB <span style="font-size: 10px; font-family: monospace; text-transform: uppercase; letter-spacing: 2px; vertical-align: middle; margin-left: 10px; border: 1px solid black; padding: 2px 6px;">Admin.Core</span>
+      </div>
+      
+      <div style="display: flex; gap: 20px; align-items: center;">
+        <a routerLink="/" style="font-family: monospace; font-size: 11px; text-decoration: none; color: black; font-weight: 700; text-transform: uppercase;">← Storefront</a>
+        <button (click)="logout()" style="background: black; color: white; border: none; padding: 8px 16px; font-family: monospace; font-size: 11px; text-transform: uppercase; cursor: pointer; font-weight: 700;">Sign Out</button>
+      </div>
+    </div>  -->
+
+    <nav style="
+        display: flex; 
+        justify-content: center; 
+        gap: 60px; 
+        padding: 15px 0;
+        background: var(--noir-white);
+    ">
+      <a routerLink="/admin/products" routerLinkActive="active" style="
+          text-decoration: none; 
+          color: var(--noir-black); 
+          font-family: monospace; 
+          font-size: 13px; 
+          font-weight: 800; 
+          text-transform: uppercase; 
+          letter-spacing: 2px;
+          padding-bottom: 5px;
+          border-bottom: 3px solid transparent;
+          transition: all 0.3s ease;
+      " onmouseover="this.style.borderBottom='3px solid black'" onmouseout="this.style.borderBottom='3px solid transparent'">
+        🧾Products
+      </a>
+      
+      <a routerLink="/admin/customers" routerLinkActive="active" style="
+          text-decoration: none; 
+          color: var(--noir-black); 
+          font-family: monospace; 
+          font-size: 13px; 
+          font-weight: 800; 
+          text-transform: uppercase; 
+          letter-spacing: 2px;
+          padding-bottom: 5px;
+          border-bottom: 3px solid transparent;
+          transition: all 0.3s ease;
+      " onmouseover="this.style.borderBottom='3px solid black'" onmouseout="this.style.borderBottom='3px solid transparent'">
+        👥 Customers
+      </a>
+      
+      <a routerLink="/admin/orders" routerLinkActive="active" style="
+          text-decoration: none; 
+          color: var(--noir-black); 
+          font-family: monospace; 
+          font-size: 13px; 
+          font-weight: 800; 
+          text-transform: uppercase; 
+          letter-spacing: 2px;
+          padding-bottom: 5px;
+          border-bottom: 3px solid transparent;
+          transition: all 0.3s ease;
+      " onmouseover="this.style.borderBottom='3px solid black'" onmouseout="this.style.borderBottom='3px solid transparent'">
+        📦Orders
+      </a>
+    </nav>
+  <!-- </header> -->
+
+  <main style="
+      flex: 1;
+      padding: 40px;
+      max-width: 1400px;
+      width: 100%;
+      margin: 0 auto;
+      animation: fadeIn 0.5s ease-in;
+  ">
+    <router-outlet></router-outlet>
+  </main>
+
+  <footer style="
+      padding: 40px; 
+      border-top: 1px solid #eeeeee; 
+      text-align: center; 
+      font-family: monospace; 
+      font-size: 10px; 
+      text-transform: uppercase; 
+      letter-spacing: 3px; 
+      color: #999;
+  ">
+    © StyleHub Noir System // All Rights Reserved 2026
+  </footer>
+</div>
+
+<style>
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  /* Angular Active Link Styling */
+  .active {
+    border-bottom: 3px solid black !important;
+  }
+</style>
+
+<!-- 
+<div class="admin-shell" style="
+    --noir-black: #000000;
+    --noir-white: #ffffff;
+    --noir-pink: #ff3f6c;
+    --noir-pink-light: #fff0f3;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background: var(--noir-white);
+    font-family: 'DM Sans', sans-serif;
+">
+  
+  <nav style="
+      display: flex; 
+      justify-content: center; 
+      gap: 50px; 
+      padding: 20px 0;
+      background: var(--noir-white);
+      border-bottom: 2px solid var(--noir-black);
+      position: sticky;
+      top: 0; /* Adjust this value if your primary header is fixed */
+      z-index: 999;
+  ">
+    <a routerLink="/admin/products" routerLinkActive="active" 
+       class="nav-item"
+       style="text-decoration: none; color: var(--noir-black); font-family: monospace; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; padding: 8px 16px; transition: all 0.3s ease; display: flex; align-items: center; gap: 8px;">
+      📦 Products
+    </a>
+    
+    <a routerLink="/admin/customers" routerLinkActive="active" 
+       class="nav-item"
+       style="text-decoration: none; color: var(--noir-black); font-family: monospace; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; padding: 8px 16px; transition: all 0.3s ease; display: flex; align-items: center; gap: 8px;">
+      👥 Customers
+    </a>
+    
+    <a routerLink="/admin/orders" routerLinkActive="active" 
+       class="nav-item"
+       style="text-decoration: none; color: var(--noir-black); font-family: monospace; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; padding: 8px 16px; transition: all 0.3s ease; display: flex; align-items: center; gap: 8px;">
+      🧾 Orders
+    </a>
+  </nav>
+
+  <main style="
+      flex: 1;
+      padding: 40px 20px;
+      max-width: 1280px;
+      width: 100%;
+      margin: 0 auto;
+      animation: slideUpFade 0.6s ease-out;
+  ">
+    <router-outlet></router-outlet>
+  </main>
+
+  <footer style="padding: 30px; border-top: 1px solid #eee; text-align: center; font-family: monospace; font-size: 10px; color: #bbb; letter-spacing: 2px;">
+    SYSTEM ARCHIVE // 2026
+  </footer>
+</div>
+
+<style>
+  /* Navigation Hover & Active States */
+  .nav-item:hover {
+    background-color: var(--noir-pink-light);
+    color: var(--noir-pink) !important;
+  }
+
+  .active {
+    background-color: var(--noir-black) !important;
+    color: var(--noir-white) !important;
+  }
+
+  @keyframes slideUpFade {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style> -->

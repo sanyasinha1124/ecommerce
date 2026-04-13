@@ -1,0 +1,61 @@
+<div class="container page-wrapper">
+  <div class="page-header">
+    <h1 class="display">My Cart</h1>
+    <p *ngIf="cart && cart.items.length > 0">{{ itemCount }} item{{ itemCount !== 1 ? 's' : '' }} in your bag</p>
+  </div>
+
+  <div *ngIf="loading" class="shop-loading">
+    <div class="spinner" style="width:40px;height:40px;border-width:3px;"></div>
+  </div>
+
+  <div *ngIf="!loading && cart && cart.items.length === 0" class="empty-state">
+    <div class="empty-state__icon">🛍️</div>
+    <h3 class="empty-state__title">Your cart is empty</h3>
+    <p class="empty-state__text">Looks like you haven't added anything yet.</p>
+    <a routerLink="/products" class="btn btn-primary">Start Shopping</a>
+  </div>
+
+  <div *ngIf="!loading && cart && cart.items.length > 0" class="cart-layout">
+    <div class="cart-items">
+      <div *ngFor="let item of cart.items" class="cart-item" [class.updating]="updatingId === item.id">
+        <div class="cart-item__img-wrap">
+          <app-default-image [imagePath]="item.product.imagePath" [alt]="item.product.name" imgClass="cart-item__img"></app-default-image>
+        </div>
+        <div class="cart-item__details">
+           <p class="cart-item__category">{{ item.product.subCategory.category.type.name }}</p>
+          <h3 class="cart-item__name" [routerLink]="['/products', item.product.id]">{{ item.product.name }}</h3>
+          <p class="cart-item__price">₹{{ item.product.price | number }}</p>
+          
+          <div class="cart-item__actions">
+            <div class="cart-qty">
+              <button (click)="updateQty(item.id, item.quantity-1)" [disabled]="item.quantity<=1||updatingId===item.id">−</button>
+              <span>{{ item.quantity }}</span>
+              <button (click)="updateQty(item.id, item.quantity+1)" [disabled]="item.quantity>=item.product.stock||updatingId===item.id">+</button>
+            </div>
+            <button class="cart-item__remove" (click)="remove(item.id)" [disabled]="updatingId===item.id">🗑 Remove</button>
+          </div>
+        </div>
+        <div class="cart-item__subtotal">₹{{ (item.product.price * item.quantity) | number }}</div>
+      </div>
+    </div>
+
+    <div class="cart-summary">
+      <h3 class="cart-summary__title">Order Summary</h3>
+      <div class="cart-summary__row">
+        <span>Subtotal ({{ itemCount }} items)</span>
+        <span>₹{{ cart.subtotal | number }}</span>
+      </div>
+      <div class="cart-summary__row">
+        <span>Delivery</span>
+        <span style="color: #10b981; font-weight: bold;">FREE</span>
+      </div>
+      <div style="height: 1px; background: #eee; margin: 15px 0;"></div>
+      <div class="cart-summary__row" style="font-weight: 800; font-size: 1.2rem;">
+        <span>Total</span>
+        <span>₹{{ cart.subtotal | number }}</span>
+      </div>
+      <a routerLink="/checkout" class="btn btn-primary" style="margin-top:24px; display:block; text-align:center; padding: 15px; border-radius: 10px;">Proceed to Checkout →</a>
+      <a routerLink="/products" class="btn btn-ghost" style="margin-top:12px; display:block; text-align:center;">Continue Shopping</a>
+    </div>
+  </div>
+</div>

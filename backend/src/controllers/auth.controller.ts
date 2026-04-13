@@ -92,4 +92,35 @@ export class AuthController {
       }
     }
   }
+// important from frontend to call this method "getMe" — it's used in auth.service.ts and auth.controller.ts
+  static async getMe(req: Request, res: Response, next: NextFunction) {
+  try {
+    const user = await AuthService.getMe(req.user!.userId);
+    res.json(user);
+  } catch (err: any) {
+    if (err.status) res.status(err.status).json({ message: err.message });
+    else next(err);
+  }
+}
+
+static async updateProfile(req: Request, res: Response, next: NextFunction) {
+  try {
+    const user = await AuthService.updateProfile(req.user!.userId, req.body);
+    res.json(user);
+  } catch (err: any) {
+    if (err.status) res.status(err.status).json({ message: err.message });
+    else next(err);
+  }
+}
+
+static async changePassword(req: Request, res: Response, next: NextFunction) {
+  try {
+    await AuthService.changePassword(req.user!.userId, req.body);
+    // Clear cookie — user must log in again
+    res.clearCookie('token').json({ message: 'Password changed. Please log in again.' });
+  } catch (err: any) {
+    if (err.status) res.status(err.status).json({ message: err.message });
+    else next(err);
+  }
+}
 }

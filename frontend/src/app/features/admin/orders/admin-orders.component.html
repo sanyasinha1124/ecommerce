@@ -1,0 +1,73 @@
+<div>
+  <div class="admin-page__header">
+    <div>
+      <h1 class="admin-page__title">Orders</h1>
+      <p class="admin-page__subtitle">{{ orders.length }} total orders</p>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="admin-loading">
+    <div class="spinner" style="width:36px;height:36px;border-width:3px;"></div>
+   </div> 
+  <div *ngIf="!loading" class="admin-table-wrap">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Order ID</th>
+          <th>Customer</th>
+          <th>Date</th>
+          <th>Payment</th>
+          <th>Items</th>
+          <th>Total</th>
+          <th>Details</th>
+        </tr>
+      </thead>
+      <tbody>
+        <ng-container *ngFor="let order of orders">
+          <tr>
+            <td class="fw-600">#{{ order.id }}</td>
+            <td>
+              <div class="fw-600" style="color:var(--charcoal);">{{ order.user?.name }}</div>
+              <div style="font-size:11px;color:var(--grey);">{{ order.user?.email }}</div>
+            </td>
+            <td>{{ order.placedAt | date:'mediumDate' }}</td>
+            <td><span class="badge badge-grey">{{ labels[order.paymentMethod] }}</span></td>
+            <td>{{ count(order) }}</td>
+            <td class="fw-600 text-pink">₹{{ order.totalAmount | number }}</td>
+            <td>
+              <button class="btn btn-outline btn-sm" (click)="toggle(order.id)">
+                {{ expandedId === order.id ? 'Hide' : 'View' }}
+              </button>
+            </td>
+          </tr>
+
+        
+          <tr *ngIf="expandedId === order.id" class="order-expand-row">
+            <td colspan="7">
+              <div class="order-expand">
+                <div *ngFor="let item of order.items" class="order-expand__item">
+                  <app-default-image
+                    [imagePath]="item.product?.imagePath ?? null"
+                    [alt]="item.product?.name ?? ''"
+                    imgClass="order-expand__img">
+                  </app-default-image>
+                  <span class="order-expand__name">{{ item.product?.name ?? 'Deleted product' }}</span>
+                  <span class="order-expand__qty">× {{ item.quantity }}</span>
+                  <span class="order-expand__price">₹{{ item.priceAtPurchase | number }} each</span>
+                  <span class="order-expand__total text-pink fw-600">₹{{ (item.priceAtPurchase * item.quantity) | number }}</span>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </ng-container>
+      </tbody>
+    </table>
+
+    <div *ngIf="orders.length === 0" class="empty-state">
+      <div class="empty-state__icon">🧾</div>
+      <h3 class="empty-state__title">No orders placed yet</h3>
+    </div>
+  </div>
+</div>
+
+
