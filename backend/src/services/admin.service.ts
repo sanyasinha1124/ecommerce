@@ -28,20 +28,19 @@ export class AdminService {
     });
   }
 
-  static async createProduct(body: {
-    name: string;
-    description: string;
-    price: number;
-    stock: number;
-    subCategoryId: number;
-  }, imagePath?: string) {
+ // admin.service.ts (Backend)
+static async createProduct(body: any, imagePath?: string) {
+  // CONVERT TO NUMBER HERE
+  const subCatId = Number(body.subCategoryId);
 
-    const subCategory = await subCatRepo().findOne({
-      where: { id: body.subCategoryId },
-      relations: { category: { type: true } },
-    });
+  const subCategory = await subCatRepo().findOne({
+    where: { id: subCatId }, // Use the converted number
+    relations: { category: { type: true } },
+  });
 
-    if (!subCategory) throw { status: 404, message: 'SubCategory not found' };
+  if (!subCategory) throw { status: 404, message: 'SubCategory not found' };
+  
+
 
     const product = productRepo().create({
       name: body.name,
@@ -55,49 +54,46 @@ export class AdminService {
     return productRepo().save(product);
   }
 
-  static async updateProduct(
-    id: number,
-    body: {
-      name?: string;
-      description?: string;
-      price?: number;
-      stock?: number;
-      subCategoryId?: number;
-    },
-    newImagePath?: string
-  ) {
-    const product = await productRepo().findOne({
-      where: { id, isActive: true },
-      relations: { subCategory: true },
-    });
+static async updateProduct(
+  id: number,
+  body: any, // Use any or a specific interface
+  newImagePath?: string
+) {
+  const product = await productRepo().findOne({
+    where: { id, isActive: true },
+    relations: { subCategory: true },
+  });
 
-    if (!product) throw { status: 404, message: 'Product not found' };
+  if (!product) throw { status: 404, message: 'Product not found' };
 
-    // Update scalar fields if provided
-    if (body.name !== undefined)        product.name = body.name;
-    if (body.description !== undefined) product.description = body.description;
-    if (body.price !== undefined)       product.price = Number(body.price);
-    if (body.stock !== undefined)       product.stock = Number(body.stock);
+  // Update scalar fields with explicit Number conversion
+  if (body.name !== undefined)        product.name = body.name;
+  if (body.description !== undefined) product.description = body.description;
+  if (body.price !== undefined)       product.price = Number(body.price);
+  if (body.stock !== undefined)       product.stock = Number(body.stock);
 
-    // Update taxonomy placement if subCategoryId provided
-    if (body.subCategoryId !== undefined) {
-      const subCategory = await subCatRepo().findOneBy({ id: body.subCategoryId });
-      if (!subCategory) throw { status: 404, message: 'SubCategory not found' };
-      product.subCategory = subCategory;
-    }
-
-    // Replace image — delete old file from disk to avoid orphaned files
-    if (newImagePath !== undefined) {
-      if (product.imagePath) {
-        const oldPath = path.join(__dirname, '../../../ProductImages', product.imagePath);
-        if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
-      }
-      product.imagePath = newImagePath;
-    }
-
-    return productRepo().save(product);
+  // FIX HERE: Ensure subCategoryId is a Number before querying
+  if (body.subCategoryId !== undefined && body.subCategoryId !== null) {
+    const subCatId = Number(body.subCategoryId); // Ensure it's a number
+    const subCategory = await subCatRepo().findOneBy({ id: subCatId });
+    
+    if (!subCategory) throw { status: 404, message: 'SubCategory not found' };
+    product.subCategory = subCategory;
   }
 
+  // Image deletion logic remains correct
+  if (newImagePath !== undefined) {
+    if (product.imagePath) {
+      const oldPath = path.join(__dirname, '../../../ProductImages', product.imagePath);
+      if (fs.existsSync(oldPath)) {
+          try { fs.unlinkSync(oldPath); } catch(e) { console.error("Old image delete failed", e); }
+      }
+    }
+    product.imagePath = newImagePath;
+  }
+
+  return productRepo().save(product);
+}
   static async deleteProduct(id: number) {
     const product = await productRepo().findOneBy({ id, isActive: true });
     if (!product) throw { status: 404, message: 'Product not found' };

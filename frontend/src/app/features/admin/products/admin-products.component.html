@@ -1,434 +1,249 @@
-<!-- <div class="admin-page">
-  <div class="admin-page__header">
+<div class="ap-wrap">
+
+  <!-- Header -->
+  <div class="ap-header">
     <div>
-      <h1 class="admin-page__title">Products</h1>
-      <p class="admin-page__subtitle">{{ products.length }} products total</p>
+      <h1 class="ap-title">Products</h1>
+      <p class="ap-subtitle">{{ products.length }} products in catalogue</p>
     </div>
-    <button class="btn btn-primary" (click)="openCreate()">+ Add Product</button>
+    <button class="ap-add-btn" (click)="openCreate()">+ Add Product</button>
   </div>
 
-  <div *ngIf="success" class="alert alert-success">{{ success }}</div>
-  <div *ngIf="error && !showForm" class="alert alert-error">{{ error }}</div>
+  <!-- Alerts -->
+  <div *ngIf="success" class="ap-alert ap-alert--success">✓ {{ success }}</div>
+  <div *ngIf="error && !showForm" class="ap-alert ap-alert--error">✕ {{ error }}</div>
 
- 
-  <div *ngIf="showForm" class="admin-form-card fade-up">
-    <div class="admin-form-card__header">
-      <h3>{{ editing ? 'Edit Product' : 'New Product' }}</h3>
-      <button (click)="showForm=false" class="admin-form-card__close">✕</button>
+  <!-- ── Product Form ──────────────────────────────────────── -->
+  <div *ngIf="showForm" class="ap-form-card">
+    <div class="ap-form-card__head">
+      <h3 class="ap-form-card__title">
+        {{ editing ? 'Edit Product' : 'New Product' }}
+      </h3>
+      <button class="ap-form-card__close" (click)="showForm = false">✕</button>
     </div>
-    <div *ngIf="error" class="alert alert-error">{{ error }}</div>
+
+    <div *ngIf="error" class="ap-alert ap-alert--error">✕ {{ error }}</div>
 
     <form [formGroup]="form" (ngSubmit)="submit()">
-      <div class="admin-form-grid">
-        <div class="form-group">
-          <label class="form-label">Product Name</label>
-          <input type="text" formControlName="name" class="form-control" placeholder="e.g. Anker Keyboard" />
-          <div *ngIf="form.get('name')?.invalid && form.get('name')?.touched" class="form-error">Name is required</div>
+      <div class="ap-form-grid">
+
+        <!-- Name -->
+        <div class="ap-field">
+          <label class="ap-label">Product Name</label>
+          <input type="text" formControlName="name" class="ap-input"
+                 placeholder="e.g. Anker Keyboard" />
+          <div *ngIf="form.get('name')?.invalid && form.get('name')?.touched"
+               class="ap-field-err">Name is required</div>
         </div>
 
-        <div class="form-group" style="grid-column:1/-1;">
-          <label class="form-label">Description</label>
-          <textarea formControlName="description" class="form-control" rows="3" placeholder="Product description…"></textarea>
-          <div *ngIf="form.get('description')?.invalid && form.get('description')?.touched" class="form-error">Description is required</div>
+        <!-- Description -->
+        <div class="ap-field ap-field--full">
+          <label class="ap-label">Description</label>
+          <textarea formControlName="description" class="ap-input ap-textarea"
+                    rows="3" placeholder="Describe the product…"></textarea>
+          <div *ngIf="form.get('description')?.invalid && form.get('description')?.touched"
+               class="ap-field-err">Description is required</div>
         </div>
 
-        <div class="form-group">
-          <label class="form-label">Price (₹)</label>
-          <input type="number" formControlName="price" class="form-control" placeholder="0.00" min="0" step="0.01" />
-          <div *ngIf="form.get('price')?.invalid && form.get('price')?.touched" class="form-error">Valid price required</div>
+        <!-- Price -->
+        <div class="ap-field">
+          <label class="ap-label">Price (₹)</label>
+          <input type="number" formControlName="price" class="ap-input"
+                 placeholder="0.00" min="0" step="0.01" />
+          <div *ngIf="form.get('price')?.invalid && form.get('price')?.touched"
+               class="ap-field-err">Valid price required</div>
         </div>
 
-        <div class="form-group">
-          <label class="form-label">Stock Quantity</label>
-          <input type="number" formControlName="stock" class="form-control" placeholder="0" min="0" />
-          <div *ngIf="form.get('stock')?.invalid && form.get('stock')?.touched" class="form-error">Valid stock required</div>
+        <!-- Stock -->
+        <div class="ap-field">
+          <label class="ap-label">Stock Quantity</label>
+          <input type="number" formControlName="stock" class="ap-input"
+                 placeholder="0" min="0" />
+          <div *ngIf="form.get('stock')?.invalid && form.get('stock')?.touched"
+               class="ap-field-err">Valid stock required</div>
         </div>
 
-      
-        <div class="form-group">
-          <label class="form-label">Type</label>
-          <select class="form-control" [value]="selectedTypeId" (change)="onTypeChange($event)">
-            <option value="">Select Type</option>
-            <option *ngFor="let t of taxonomy" [value]="t.id">{{ t.name }}</option>
+        <!-- ── Taxonomy Dropdowns ──────────────────────────── -->
+
+        <!-- Step 1: Type -->
+        <div class="ap-field">
+          <label class="ap-label">
+            Type
+            <span class="ap-label__hint">— select first</span>
+          </label>
+          <select class="ap-input ap-select"
+                  [value]="selectedTypeId"
+                  (change)="onTypeChange($event)">
+            <option value="">— Choose Type —</option>
+            <option *ngFor="let t of taxonomy"
+                    [value]="t.id">
+              {{ t.name }}
+            </option>
           </select>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Category</label>
-          <select class="form-control" [value]="selectedCategoryId" (change)="onCategoryChange($event)" [disabled]="!selectedTypeId">
-            <option value="">Select Category</option>
-            <option *ngFor="let c of catsForType" [value]="c.id">{{ c.name }}</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Sub-Category</label>
-          <select formControlName="subCategoryId" class="form-control" [disabled]="!selectedCategoryId">
-            <option value="">Select Sub-Category</option>
-            <option *ngFor="let s of subsForCat" [value]="s.id">{{ s.name }}</option>
-          </select>
-          <div *ngIf="form.get('subCategoryId')?.invalid && form.get('subCategoryId')?.touched" class="form-error">Sub-Category is required</div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Product Image</label>
-          <div class="file-upload" (click)="fileInput.click()">
-            <input #fileInput type="file" accept="image/*" (change)="onFileChange($event)" style="display:none" />
-            <span *ngIf="!selectedFile">📷 Click to upload image</span>
-            <span *ngIf="selectedFile" class="text-pink">✓ {{ selectedFile.name }}</span>
+          <div *ngIf="taxonomy.length === 0" class="ap-field-hint">
+            Loading taxonomy…
           </div>
-          <p *ngIf="editing?.imagePath && !selectedFile" style="font-size:12px;color:var(--grey);margin-top:6px;">
+        </div>
+
+        <!-- Step 2: Category — only shown after type is selected -->
+        <div class="ap-field">
+          <label class="ap-label">
+            Category
+            <span class="ap-label__hint">— requires Type</span>
+          </label>
+          <select class="ap-input ap-select"
+                  [value]="selectedCategoryId"
+                  (change)="onCategoryChange($event)"
+                  [disabled]="!selectedTypeId">
+            <option value="">— Choose Category —</option>
+            <option *ngFor="let c of catsForType"
+                    [value]="c.id">
+              {{ c.name }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Step 3: Sub-Category — bound to the form -->
+        <div class="ap-field">
+          <label class="ap-label">
+            Sub-Category
+            <span class="ap-label__hint">— requires Category</span>
+          </label>
+          <select formControlName="subCategoryId"
+                  class="ap-input ap-select"
+                  [disabled]="!selectedCategoryId">
+            <option value="">— Choose Sub-Category —</option>
+            <option *ngFor="let s of subsForCat"
+                    [value]="s.id">
+              {{ s.name }}
+            </option>
+          </select>
+          <div *ngIf="form.get('subCategoryId')?.invalid && form.get('subCategoryId')?.touched"
+               class="ap-field-err">Sub-Category is required</div>
+        </div>
+
+        <!-- Image Upload -->
+        <div class="ap-field">
+          <label class="ap-label">Product Image</label>
+          <div class="ap-file-drop" (click)="fileInput.click()">
+            <input #fileInput type="file" accept="image/*"
+                   (change)="onFileChange($event)"
+                   style="display:none" />
+            <span *ngIf="!selectedFile">📷 Click to upload image</span>
+            <span *ngIf="selectedFile" class="ap-file-chosen">
+              ✓ {{ selectedFile.name }}
+            </span>
+          </div>
+          <p *ngIf="editing?.imagePath && !selectedFile"
+             class="ap-field-hint">
             Current: {{ editing?.imagePath }}
           </p>
         </div>
+
       </div>
 
-      <div class="admin-form-card__actions">
-        <button type="button" class="btn btn-ghost" (click)="showForm=false">Cancel</button>
-        <button type="submit" class="btn btn-primary" [disabled]="saving">
-          <span *ngIf="saving" class="spinner"></span>
-          {{ saving ? 'Saving...' : (editing ? 'Update Product' : 'Create Product') }}
+      <!-- Form Actions -->
+      <div class="ap-form-actions">
+        <button type="button" class="ap-btn ap-btn--ghost"
+                (click)="showForm = false">Cancel</button>
+        <button type="submit" class="ap-btn ap-btn--primary"
+                [disabled]="saving">
+          <span *ngIf="saving" class="ap-spinner"></span>
+          {{ saving ? 'Saving…' : (editing ? 'Update Product' : 'Create Product') }}
         </button>
       </div>
     </form>
   </div>
 
- 
-  <div *ngIf="loading" class="admin-loading">
-    <div class="spinner" style="width:36px;height:36px;border-width:3px;"></div>
+  <!-- ── Products Table ──────────────────────────────────── -->
+  <div *ngIf="loading" class="ap-loading">
+    <div class="ap-spinner ap-spinner--lg"></div>
   </div>
 
-  <div *ngIf="!loading" class="admin-table-wrap">
-    <table class="admin-table">
+  <div *ngIf="!loading" class="ap-table-wrap">
+    <table class="ap-table">
       <thead>
         <tr>
-          <th>Image</th><th>Name</th><th>Category</th><th>Price</th><th>Stock</th><th>Actions</th>
+          <th>Image</th>
+          <th>Product</th>
+          <th>Category</th>
+          <th>Price</th>
+          <th>Stock</th>
+          <th style="text-align:right;">Actions</th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let p of products">
+        <tr *ngFor="let p of products" class="ap-row">
+
+          <!-- Image -->
           <td>
-            <div class="admin-product-thumb">
-              <app-default-image [imagePath]="p.imagePath" [alt]="p.name" imgClass="admin-product-thumb__img"></app-default-image>
+            <div class="ap-thumb">
+              <app-default-image
+                [imagePath]="p.imagePath"
+                [alt]="p.name"
+                imgClass="ap-thumb__img">
+              </app-default-image>
             </div>
           </td>
-          <td class="admin-table__name">{{ p.name }}</td>
-         
-<td><span class="badge badge-grey">{{ p.subCategory.category.type.name }}</span></td>
-          <td class="fw-600">₹{{ p.price | number }}</td>
-          <td><span [class]="p.stock > 0 ? 'badge badge-green' : 'badge badge-red'">{{ p.stock }}</span></td>
+
+          <!-- Name -->
           <td>
-            <div class="admin-table__actions">
-              <button class="btn btn-outline btn-sm" (click)="openEdit(p)">Edit</button>
-              <ng-container *ngIf="deleteConfirmId !== p.id">
-                <button class="btn btn-sm delete-btn" (click)="confirmDelete(p.id)">Delete</button>
-              </ng-container>
-              <ng-container *ngIf="deleteConfirmId === p.id">
-                <span style="font-size:12px;color:#c0392b;font-weight:600;">Sure?</span>
-                <button class="btn btn-sm" style="background:#c0392b;color:#fff;border:none;" (click)="deleteProduct(p.id)">Yes</button>
-                <button class="btn btn-ghost btn-sm" (click)="deleteConfirmId=null">No</button>
-              </ng-container>
-            </div>
+            <p class="ap-row__name">{{ p.name }}</p>
+            <p class="ap-row__sub">{{ p.subCategory.category.name }}</p>
           </td>
-        </tr>
-      </tbody>
-    </table>
-    <div *ngIf="products.length===0" class="empty-state">
-      <div class="empty-state__icon">📦</div>
-      <h3 class="empty-state__title">No products yet</h3>
-      <button class="btn btn-primary" (click)="openCreate()">Add First Product</button>
-    </div>
-  </div>
-</div>
- -->
 
- <div class="admin-page" style="
-    --primary-pink: #ff3f6c;
-    --deep-pink: #d4305a;
-    --light-pink: #fff0f3;
-    --bg-white: #ffffff;
-    --text-main: #282c3f;
-    --border-color: #f1f1f1;
-    color: var(--text-main);
-    animation: fadeIn 0.6s ease-out;
-">
-  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid var(--light-pink);">
-    <div>
-      <h1 style="font-family: 'Playfair Display', serif; font-size: 32px; margin: 0; color: var(--primary-pink);">Products</h1>
-      <p style="font-size: 13px; color: #93959f; margin: 5px 0 0;">{{ products.length }} cataloged entries</p>
-    </div>
-    <button class="btn-sakura" (click)="openCreate()" style="
-        background: var(--primary-pink);
-        color: white;
-        border: none;
-        padding: 12px 24px;
-        border-radius: 50px;
-        font-weight: 700;
-        cursor: pointer;
-        transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        box-shadow: 0 4px 15px rgba(255, 63, 108, 0.2);
-    " onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
-      + Add Product
-    </button>
-  </div>
-
-  <div *ngIf="success" style="background: #f0fdf4; color: #16a34a; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #bbf7d0;">✓ {{ success }}</div>
-  <div *ngIf="error && !showForm" style="background: #fff1f2; color: #e11d48; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #fecdd3;">⚠ {{ error }}</div>
-
-  <div *ngIf="showForm" class="fade-up" style="
-      background: white;
-      border: 1px solid var(--light-pink);
-      border-radius: 20px;
-      padding: 40px;
-      margin-bottom: 40px;
-      box-shadow: 0 20px 40px rgba(255, 63, 108, 0.08);
-  ">
-    <div style="display: flex; justify-content: space-between; margin-bottom: 30px;">
-      <h3 style="font-size: 22px; font-weight: 700;">{{ editing ? 'Edit Entry' : 'New Collection Entry' }}</h3>
-      <button (click)="showForm=false" style="background: var(--light-pink); border: none; color: var(--primary-pink); width: 32px; height: 32px; border-radius: 50%; cursor: pointer;">✕</button>
-    </div>
-
-    <!-- <form [formGroup]="form" (ngSubmit)="submit()">
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 25px;">
-        
-        <div style="grid-column: 1 / -1;">
-          <label style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: #535766; display: block; margin-bottom: 8px;">Product Name</label>
-          <input type="text" formControlName="name" class="sakura-input" placeholder="e.g. Velvet Rose Dress" />
-        </div>
-
-        <div style="grid-column: 1 / -1;">
-          <label style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: #535766; display: block; margin-bottom: 8px;">Description</label>
-          <textarea formControlName="description" class="sakura-input" rows="3"></textarea>
-        </div>
-
-        <div>
-          <label style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: #535766; display: block; margin-bottom: 8px;">Price (₹)</label>
-          <input type="number" formControlName="price" class="sakura-input" />
-        </div>
-        <div>
-          <label style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: #535766; display: block; margin-bottom: 8px;">Stock Quantity</label>
-          <input type="number" formControlName="stock" class="sakura-input" />
-        </div>
-
-      
-
-        <div class="form-group">
-  <label class="form-label">Type</label>
-  <select class="sakura-input" [value]="selectedTypeId" (change)="onTypeChange($event)">
-    <option value="">Select Type</option>
-    <option *ngFor="let t of taxonomy" [value]="t.id">{{ t.name }}</option>
-  </select>
-</div>
-
-<div class="form-group">
-  <label class="form-label">Category</label>
-  <select class="sakura-input" [value]="selectedCategoryId" (change)="onCategoryChange($event)" [disabled]="!selectedTypeId">
-    <option value="">Select Category</option>
-    <option *ngFor="let c of catsForType" [value]="c.id">{{ c.name }}</option>
-  </select>
-</div>
-
-<div class="form-group">
-  <label class="form-label">Sub-Category</label>
-  <select formControlName="subCategoryId" class="sakura-input" [disabled]="!selectedCategoryId">
-    <option value="">Select Sub-Category</option>
-    <option *ngFor="let s of subsForCat" [value]="s.id">{{ s.name }}</option>
-  </select>
-  <div *ngIf="form.get('subCategoryId')?.invalid && form.get('subCategoryId')?.touched" class="form-error">
-    Sub-Category is required
-  </div>
-</div>
-
-        <div>
-          <label style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: #535766; display: block; margin-bottom: 8px;">Media</label>
-          <div (click)="fileInput.click()" style="border: 2px dashed var(--light-pink); padding: 15px; text-align: center; border-radius: 12px; cursor: pointer; background: var(--bg-white);">
-            <input #fileInput type="file" (change)="onFileChange($event)" style="display:none" />
-            <span style="font-size: 13px; color: var(--primary-pink);">{{ selectedFile ? '✓ ' + selectedFile.name : '📷 Click to Upload' }}</span>
-          </div>
-        </div>
-      </div>
-
-      <div style="margin-top: 40px; display: flex; gap: 15px; justify-content: flex-end;">
-        <button type="button" (click)="showForm=false" style="padding: 12px 25px; border: none; background: none; color: #93959f; font-weight: 600; cursor: pointer;">Cancel</button>
-        <button type="submit" [disabled]="saving || form.invalid" style="
-            background: var(--primary-pink);
-            color: white;
-            padding: 12px 30px;
-            border: none;
-            border-radius: 50px;
-            font-weight: 700;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        ">
-          <span *ngIf="saving" class="spinner-small"></span>
-          {{ saving ? 'Syncing...' : (editing ? 'Update Product' : 'Create Product') }}
-        </button>
-      </div>
-    </form> -->
-
-   <form [formGroup]="form" (ngSubmit)="submit()" class="fade-up" style="background: white; border-radius: 20px; padding: 40px; box-shadow: 0 20px 40px rgba(0,0,0,0.05);">
-  <div style="display: flex; justify-content: space-between; margin-bottom: 30px;">
-    <h3 style="font-size: 22px; font-weight: 700;">{{ editing ? 'Edit Entry' : 'New Collection Entry' }}</h3>
-    <button type="button" (click)="showForm=false" style="background: var(--light-pink); border: none; color: var(--primary-pink); width: 32px; height: 32px; border-radius: 50%; cursor: pointer;">✕</button>
-  </div>
-
-  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 25px;">
-    
-    <div style="grid-column: 1 / -1;">
-      <label style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: #535766; display: block; margin-bottom: 8px;">Product Name</label>
-      <input type="text" formControlName="name" class="sakura-input" placeholder="e.g. Velvet Rose Dress" />
-    </div>
-
-    <div style="grid-column: 1 / -1;">
-      <label style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: #535766; display: block; margin-bottom: 8px;">Description</label>
-      <textarea formControlName="description" class="sakura-input" rows="3"></textarea>
-    </div>
-
-    <div>
-      <label style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: #535766; display: block; margin-bottom: 8px;">Price (₹)</label>
-      <input type="number" formControlName="price" class="sakura-input" />
-    </div>
-    <div>
-      <label style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: #535766; display: block; margin-bottom: 8px;">Stock Quantity</label>
-      <input type="number" formControlName="stock" class="sakura-input" />
-    </div>
-
-    <div>
-      <label style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: #535766; display: block; margin-bottom: 8px;">1. Type</label>
-      <select class="sakura-input" [(ngModel)]="selectedTypeId" [ngModelOptions]="{standalone: true}" (change)="onTypeChange($event)">
-        <option value="">Select Type</option>
-        <option *ngFor="let t of taxonomy" [value]="t.id">{{ t.name }}</option>
-      </select>
-    </div>
-
-    <div>
-      <label style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: #535766; display: block; margin-bottom: 8px;">2. Category</label>
-      <select class="sakura-input" [(ngModel)]="selectedCategoryId" [ngModelOptions]="{standalone: true}" (change)="onCategoryChange($event)" [disabled]="!selectedTypeId">
-        <option value="">Select Category</option>
-        <option *ngFor="let c of catsForType" [value]="c.id">{{ c.name }}</option>
-      </select>
-    </div>
-
-    <div>
-      <label style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: #535766; display: block; margin-bottom: 8px;">3. Sub-Category</label>
-      <select formControlName="subCategoryId" class="sakura-input" [disabled]="!selectedCategoryId">
-        <option value="">Select Sub-Category</option>
-        <option *ngFor="let s of subsForCat" [value]="s.id">{{ s.name }}</option>
-      </select>
-      <div *ngIf="form.get('subCategoryId')?.invalid && form.get('subCategoryId')?.touched" style="color: var(--primary-pink); font-size: 11px; margin-top: 5px;">Required</div>
-    </div>
-
-    <div>
-      <label style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: #535766; display: block; margin-bottom: 8px;">Media</label>
-      <div (click)="fileInput.click()" style="border: 2px dashed var(--light-pink); padding: 15px; text-align: center; border-radius: 12px; cursor: pointer;">
-        <input #fileInput type="file" (change)="onFileChange($event)" style="display:none" accept="image/*" />
-        <span style="font-size: 13px; color: var(--primary-pink);">{{ selectedFile ? '✓ ' + selectedFile.name : '📷 Click to Upload' }}</span>
-      </div>
-    </div>
-  </div>
-
-  <div style="margin-top: 40px; display: flex; gap: 15px; justify-content: flex-end;">
-    <button type="button" (click)="showForm=false" style="padding: 12px 25px; border: none; background: none; color: #93959f; font-weight: 600; cursor: pointer;">Cancel</button>
-    <button type="submit" [disabled]="saving || form.invalid" 
-            [style.opacity]="(saving || form.invalid) ? 0.6 : 1"
-            style="background: var(--primary-pink); color: white; padding: 12px 40px; border: none; border-radius: 50px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 10px;">
-      <span *ngIf="saving" class="spinner-small"></span>
-      {{ saving ? 'Saving...' : (editing ? 'Update Product' : 'Create Product') }}
-    </button>
-  </div>
-</form>
-  </div>
-
-  <div *ngIf="!loading" style="background: white; border-radius: 20px; border: 1px solid var(--light-pink); overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.02);">
-    <table style="width: 100%; border-collapse: collapse;">
-      <thead>
-        <tr style="background: var(--light-pink); color: var(--primary-pink); font-size: 11px; text-transform: uppercase; letter-spacing: 1px;">
-          <th style="padding: 20px; text-align: left;">Identity</th>
-          <th style="padding: 20px; text-align: left;">Product</th>
-          <th style="padding: 20px; text-align: left;">Type/Cat</th>
-          <th style="padding: 20px; text-align: left;">Valuation</th>
-          <th style="padding: 20px; text-align: left;">Stock</th>
-          <th style="padding: 20px; text-align: right;">Action</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let p of products" class="table-row">
-          <td style="padding: 15px 20px;">
-            <div style="width: 50px; height: 50px; border-radius: 12px; overflow: hidden; border: 1px solid var(--light-pink);">
-                <app-default-image [imagePath]="p.imagePath" [alt]="p.name"></app-default-image>
-            </div>
-          </td>
-          <td style="padding: 15px 20px; font-weight: 700;">{{ p.name }}</td>
-          <td style="padding: 15px 20px;"><span style="background: #f8f9fa; padding: 4px 10px; border-radius: 6px; font-size: 11px;">{{ p.subCategory.category.type.name }}</span></td>
-          <td style="padding: 15px 20px; font-weight: 800; color: var(--primary-pink);">₹{{ p.price | number }}</td>
-          <td style="padding: 15px 20px;">
-            <span [style.background]="p.stock > 0 ? '#f0fdf4' : '#fff1f2'" 
-                  [style.color]="p.stock > 0 ? '#16a34a' : '#e11d48'"
-                  style="padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700;">
-              {{ p.stock > 0 ? p.stock + ' in stock' : 'Out of Stock' }}
+          <!-- Type badge -->
+          <td>
+            <span class="ap-type-badge">
+              {{ p.subCategory.category.type.name }}
             </span>
           </td>
-          <td style="padding: 15px 20px; text-align: right;">
-            <button (click)="openEdit(p)" style="background: none; border: 1px solid var(--light-pink); color: var(--primary-pink); padding: 6px 12px; border-radius: 6px; cursor: pointer; margin-right: 8px;">Edit</button>
-            <button (click)="confirmDelete(p.id)" style="background: #fff1f2; border: none; color: #e11d48; padding: 7px 12px; border-radius: 6px; cursor: pointer;">Delete</button>
+
+          <!-- Price -->
+          <td class="ap-row__price">₹{{ p.price | number }}</td>
+
+          <!-- Stock -->
+          <td>
+            <span class="ap-stock"
+                  [class.ap-stock--out]="p.stock === 0"
+                  [class.ap-stock--low]="p.stock > 0 && p.stock <= 5">
+              {{ p.stock === 0 ? 'Out of Stock' : p.stock + ' units' }}
+            </span>
           </td>
+
+          <!-- Actions -->
+          <td style="text-align:right;">
+            <div class="ap-row__actions">
+              <button class="ap-btn ap-btn--edit"
+                      (click)="openEdit(p)">Edit</button>
+
+              <!-- Inline delete confirm -->
+              <ng-container *ngIf="deleteConfirmId !== p.id">
+                <button class="ap-btn ap-btn--del"
+                        (click)="confirmDelete(p.id)">Delete</button>
+              </ng-container>
+
+              <ng-container *ngIf="deleteConfirmId === p.id">
+                <span class="ap-confirm-text">Sure?</span>
+                <button class="ap-btn ap-btn--confirm-yes"
+                        (click)="deleteProduct(p.id)">Yes</button>
+                <button class="ap-btn ap-btn--ghost"
+                        (click)="deleteConfirmId = null">No</button>
+              </ng-container>
+            </div>
+          </td>
+
         </tr>
       </tbody>
     </table>
+
+    <div *ngIf="products.length === 0" class="ap-empty">
+      <p class="ap-empty__icon">📦</p>
+      <p class="ap-empty__title">No products yet</p>
+      <button class="ap-btn ap-btn--primary" (click)="openCreate()">
+        Add First Product
+      </button>
+    </div>
   </div>
+
 </div>
-
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Playfair+Display:wght@700&display=swap');
-
-  .sakura-input {
-    width: 100%;
-    padding: 12px 16px;
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    background: #fcfcfc;
-    font-size: 14px;
-    transition: all 0.3s;
-  }
-
-  .sakura-input:focus {
-    outline: none;
-    border-color: var(--primary-pink);
-    background: white;
-    box-shadow: 0 0 0 4px var(--light-pink);
-  }
-
-  .table-row {
-    border-bottom: 1px solid #f9f9f9;
-    transition: background 0.2s;
-  }
-
-  .table-row:hover {
-    background: #fffafa;
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .fade-up { animation: fadeUp 0.5s ease-out; }
-
-  .spinner-small {
-    width: 14px;
-    height: 14px;
-    border: 2px solid rgba(255,255,255,0.3);
-    border-top-color: white;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-  }
-
-  @keyframes spin { to { transform: rotate(360deg); } }
-</style>

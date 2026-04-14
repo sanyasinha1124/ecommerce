@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
-    "module": "commonjs",
+    "target": "ES2022",
+    "module": "CommonJS", 
+    "moduleResolution": "node",
     "lib": ["ES2020"],
     "outDir": "./dist",
     "rootDir": "./src",
@@ -10,12 +11,11 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "skipLibCheck": true,
-     "strictPropertyInitialization": false, 
-     "forceConsistentCasingInFileNames": true,
-     "types": ["node"],          
-   
-
+    "strictPropertyInitialization": false, 
+    "forceConsistentCasingInFileNames": true,
+    "ignoreDeprecations": "6.0",
+    "types": ["node"],
   },
-  "include": ["src/**/*", "src/server.ts"],
+  "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
 }

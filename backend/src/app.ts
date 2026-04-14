@@ -11,6 +11,7 @@ import cartRoutes from './routes/cart.routes';
 import orderRoutes from './routes/order.routes';
 import adminRoutes from './routes/admin.routes';
 import { errorHandler } from './middleware/errorHandler';
+import fs from 'fs';
 
 const app = express();
 
@@ -38,10 +39,26 @@ app.use('/api/admin', adminRoutes);
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 
 // SPA fallback — must be last; serves Angular's index.html for all non-API routes
-const frontendDist = path.join(__dirname, '../../frontend/dist/frontend/browser');
-app.use(express.static(frontendDist));
-app.get('/api', (req, res) => {
-  res.sendFile(path.join(frontendDist, 'index.html'));
+// const frontendDist = path.join(__dirname, '../../frontend/dist/frontend/browser');
+// app.use(express.static(frontendDist));
+// app.get('/api', (req, res) => {
+//   res.sendFile(path.join(frontendDist, 'index.html'));
+// });
+const angularDistRoot = path.join(__dirname, "../../frontend/dist/frontend");
+const angularBrowserPath = path.join(angularDistRoot, "browser");
+
+// Determine if we should use the /browser subfolder or the root dist
+const angularDistPath = fs.existsSync(angularBrowserPath)
+  ? angularBrowserPath
+  : angularDistRoot;
+
+console.log('Serving frontend from:', angularDistPath);
+
+app.use(express.static(angularDistPath));
+
+// Handle Angular Routing: Serve index.html for any route that doesn't start with /api
+app.get(/^\/(?!api).*/, (req, res) => {
+  res.sendFile(path.join(angularDistPath, "index.html"));
 });
 
 // Central error handler — must be registered after all routes

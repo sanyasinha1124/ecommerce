@@ -18,3 +18,74 @@ ng new my-module-app --standalone=false
 standalone :true -direct we will import it
 older than 16 -- ng new my-app --standalone
 17 + -- ng new my-standalone-app
+
+
+1)pipes -
+Pipes are simple functions used in templates to transform data for display. They don't change the data itself, just how it looks to the user.
+{{ birthday | date:'shortDate' }}
+
+2) Services
+Services are classes that encapsulate reusable logic or data fetching. They are typically injected into components using Dependency Injection (DI).
+@Injectable()
+
+3)interceptor
+Interceptors act as a "middleman" for your HTTP requests and responses
+between your code and the outside world
+4) guards
+used to protect routes.
+It sits between the user's click and the component they want to see.
+They determine if a user has permission to navigate to (or away from) a specific part of the app.
+
+CanActivate: Can the user enter this route? (e.g., Are they logged in?)
+
+CanDeactivate: Can the user leave? (e.g., "You have unsaved changes.")
+
+CanMatch: Should this route even be considered?
+
+
+2 way binding - Two-Way Binding is a mechanism that allows data to flow in both directions
+html to ts and ts to html
+
+<input [(ngModel)]="userName">
+<p>Hello, {{ userName }}!</p>
+
+iske liye import formsmodule
+
+Property Binding ([]): It passes data from the TypeScript variable to the input element (e.g., setting the initial value).
+
+Event Binding (()): It listens for user input and updates the TypeScript variable whenever the user types or clicks.
+
+Form State Tracking: Beyond just data, ngModel automatically tracks whether a field has been visited (touched), if the value 
+has changed (dirty), or if the input meets validation rules (valid/invalid).
+
+directives--
+instructions that tell Angular how to change the appearance or behavior of elements in the DOM (Document Object Model)
+- Structural Directives --- These change the structure of the DOM by adding, removing, or manipulating elements. They are easily identified by an asterisk (*) before the directive name.
+*ngIf: Conditionally adds or removes an element based on a true/false value.
+
+*ngFor: Loops through a list (array) and creates an element for each item.
+
+*ngSwitch: Functions like a switch statement in programming to show one element among many options.
+
+- Attribute Directives
+
+These change the appearance or behavior of an existing element, component, or another directive. Unlike structural directives, they do not add or remove elements from the DOM.
+
+ngModel: Used for two-way data binding (as we discussed).
+
+ngClass: Dynamically adds or removes multiple CSS classes.
+
+ngStyle: Dynamically sets multiple inline CSS styles.
+
+
+-- custom directive
+
+@Directive({
+  selector: '[appHighlight]'
+})
+export class HighlightDirective {
+  @HostListener('mouseenter') onMouseEnter() {
+    this.el.nativeElement.style.backgroundColor = 'yellow';
+  }
+}
+

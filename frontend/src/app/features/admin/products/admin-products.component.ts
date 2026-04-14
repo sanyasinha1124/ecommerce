@@ -41,10 +41,22 @@ export class AdminProductsComponent implements OnInit {
     });
   }
 
-  ngOnInit(): void {
-    this.loadProducts();
-    this.adminService.getTaxonomy().subscribe(t => this.taxonomy = t);
-  }
+  // ngOnInit(): void {
+  //   this.loadProducts();
+  //   this.adminService.getTaxonomy().subscribe(t => this.taxonomy = t);
+  // }
+
+  // Ensure taxonomy is actually populated
+ngOnInit(): void {
+  this.loadProducts();
+  this.adminService.getTaxonomy().subscribe({
+    next: (t) => {
+      this.taxonomy = t;
+      console.log('Taxonomy Loaded:', t); // Debug to see if data exists
+    },
+    error: (err) => console.error('Taxonomy Error:', err)
+  });
+}
 
   loadProducts(): void {
     this.loading = true;
@@ -55,22 +67,27 @@ export class AdminProductsComponent implements OnInit {
   }
 
   openCreate(): void {
-    this.editing = null;
-    this.form.reset();
-    this.selectedFile = null;
-    this.selectedTypeId = '';
-    this.selectedCategoryId = '';
-    this.error = '';
-    this.showForm = true;
+
+
+     this.editing = null;
+  this.form.reset();
+  this.selectedFile = null;
+  this.selectedTypeId = '';
+  this.selectedCategoryId = '';
+  this.error = '';
+  this.showForm = true;
+
+  // ← ADD THIS: disable sub-category until category is picked
+  this.form.get('subCategoryId')?.disable();
   }
 
  
 
-  openEdit(p: Product): void {
+ openEdit(p: Product): void {
   this.editing = p;
   const sub = p.subCategory;
 
-  // Convert to string to match the <select> value attribute behavior
+  // Force everything to string so the HTML <select> recognizes the value
   this.selectedTypeId = sub?.category?.type?.id ? String(sub.category.type.id) : '';
   this.selectedCategoryId = sub?.category?.id ? String(sub.category.id) : '';
 
@@ -79,17 +96,18 @@ export class AdminProductsComponent implements OnInit {
     description: p.description,
     price: p.price,
     stock: p.stock,
-    subCategoryId: sub?.id ?? '', // Ensure this is also a string if the ID in HTML is a string
+    subCategoryId: sub?.id ? String(sub.id) : '', // Ensure this is a string
   });
   
-  this.showForm = true;
-}
-
-  onFileChange(e: Event): void {
-    const f = (e.target as HTMLInputElement).files;
-    if (f?.length) this.selectedFile = f[0];
+ //enable subCategory because we have a valid category
+  if (this.selectedCategoryId) {
+    this.form.get('subCategoryId')?.enable();
   }
 
+  this.selectedFile = null;
+  this.error = '';
+  this.showForm = true;
+}
   // onTypeChange(e: Event): void {
   //   this.selectedTypeId = (e.target as HTMLSelectElement).value;
   //   this.selectedCategoryId = '';
@@ -98,87 +116,99 @@ export class AdminProductsComponent implements OnInit {
 
   // ... inside AdminProductsComponent ...
 
-  onTypeChange(e: Event): void {
+ onTypeChange(e: Event): void {
+
     const value = (e.target as HTMLSelectElement).value;
-    this.selectedTypeId = value;
-    this.selectedCategoryId = ''; // Reset category
-    this.form.patchValue({ subCategoryId: '' }); // Reset form control
-    this.form.get('subCategoryId')?.markAsUntouched();
-  }
+  this.selectedTypeId = value;
+  this.selectedCategoryId = '';
+  this.form.get('subCategoryId')?.setValue('');
+  this.form.get('subCategoryId')?.markAsUntouched();
 
-  onCategoryChange(e: Event): void {
-    const value = (e.target as HTMLSelectElement).value;
-    this.selectedCategoryId = value;
-    this.form.patchValue({ subCategoryId: '' }); // Reset form control
-    this.form.get('subCategoryId')?.markAsUntouched();
-  }
+  // ← ADD THIS: disable subCategory until category is chosen
+  this.form.get('subCategoryId')?.disable();
+}
 
-  // Getters using == instead of === or explicit String conversion for safer matching
-  get catsForType(): Category[] {
-    if (!this.selectedTypeId) return [];
-    const type = this.taxonomy.find(t => String(t.id) === this.selectedTypeId);
-    return type?.categories ?? [];
-  }
+onCategoryChange(e: Event): void {
+ const value = (e.target as HTMLSelectElement).value;
+  this.selectedCategoryId = value;
+  this.form.get('subCategoryId')?.setValue('');
+  this.form.get('subCategoryId')?.markAsUntouched();
 
-  get subsForCat(): SubCategory[] {
-    if (!this.selectedCategoryId) return [];
-    // Efficiently find subcategories
-    for (const t of this.taxonomy) {
-      const cat = t.categories?.find(c => String(c.id) === this.selectedCategoryId);
-      if (cat) return cat.subCategories ?? [];
-    }
-    return [];
+  // ← ADD THIS: re-enable subCategory now that category is chosen
+  if (value) {
+    this.form.get('subCategoryId')?.enable();
   }
+  
+}
+// Add this inside the class (usually above or below the submit method)
+onFileChange(e: Event): void {
+  const element = e.target as HTMLInputElement;
+  const files = element.files;
+  
+  if (files && files.length > 0) {
+    this.selectedFile = files[0];
+  }
+}
+ 
+
+
+
+// Update this getter to be more robust
+get catsForType(): Category[] {
+  if (!this.selectedTypeId) return [];
+  // Find using a loose comparison (==) or String conversion
+  const type = this.taxonomy.find(t => String(t.id) === String(this.selectedTypeId));
+  return type?.categories ?? [];
+}
+
+get subsForCat(): SubCategory[] {
+  if (!this.selectedCategoryId) return [];
+  // Loop through types to find the category
+  for (const t of this.taxonomy) {
+    const cat = t.categories?.find(c => String(c.id) === String(this.selectedCategoryId));
+    if (cat) return cat.subCategories ?? [];
+  }
+  return [];
+}
 
 submit(): void {
-    if (this.form.invalid) {
-      console.log('Missing fields:', this.getFormValidationErrors());
-      this.form.markAllAsTouched();
-      return;
-    }
+  if (this.form.invalid) {
+    this.form.markAllAsTouched();
+    return;
+  }
 
-    this.saving = true;
-    this.error = '';
+  this.saving = true;
+  this.error = '';
+  const fd = new FormData();
 
-    const fd = new FormData();
-    // Append form values
-    Object.entries(this.form.value).forEach(([key, value]) => {
+  // ← CHANGE form.value to form.getRawValue()
+  // disabled controls are excluded from .value but included in .getRawValue()
+  Object.entries(this.form.getRawValue()).forEach(([key, value]) => {
+    if (value !== null && value !== undefined && value !== '') {
       fd.append(key, String(value));
-    });
-
-    // Append file if selected
-    if (this.selectedFile) {
-      fd.append('image', this.selectedFile);
     }
+  });
 
-    const request = this.editing
-      ? this.adminService.updateProduct(this.editing.id, fd)
-      : this.adminService.createProduct(fd);
+  if (this.selectedFile) fd.append('image', this.selectedFile);
 
-    request.subscribe({
-      next: () => {
-        this.saving = false;
-        this.showForm = false;
-        this.success = this.editing ? 'Product updated!' : 'Product created!';
-        this.loadProducts();
-        setTimeout(() => (this.success = ''), 3000);
-      },
-      error: (err) => {
-        this.saving = false;
-        this.error = err.error?.message || 'Save failed. Please try again.';
-      }
-    });
-  }
-  // Helper to find exactly what is blocking your form
-  private getFormValidationErrors() {
-    const errors: any = {};
-    Object.keys(this.form.controls).forEach(key => {
-      const controlErrors = this.form.get(key)?.errors;
-      if (controlErrors != null) errors[key] = controlErrors;
-    });
-    return errors;
-  }
+  const request = this.editing
+    ? this.adminService.updateProduct(this.editing.id, fd)
+    : this.adminService.createProduct(fd);
 
+  request.subscribe({
+    next: () => {
+      this.saving    = false;
+      this.showForm  = false;
+      this.success   = this.editing ? 'Product updated!' : 'Product created!';
+      this.loadProducts();
+      setTimeout(() => (this.success = ''), 3000);
+    },
+    error: (err) => {
+      this.saving = false;
+      this.error  = err.error?.message || 'Save failed. Please try again.';
+    },
+  });
+}
  
 
   confirmDelete(id: number): void { this.deleteConfirmId = id; }

@@ -24,7 +24,8 @@ export const AppDataSource = new DataSource({
   type: process.env.DB_TYPE as any,
   database: process.env.DB_NAME,
   synchronize: false, // disable auto-sync, use migrations
-  logging: process.env.DB_LOGGING === 'true' || true,
+  // logging: process.env.DB_LOGGING === 'true' || true,
+  logging: false,
   entities: [
     User,
     ProductType,
@@ -36,12 +37,13 @@ export const AppDataSource = new DataSource({
     Order,
     OrderItem,
   ],
+  
   // migrations: [process.env.DB_MIGRATIONS as string],
   // migrations: ['src/migrations/**/*.ts'],
   // This detects the file extension automatically based on the environment
+
   migrations: [
-    process.env.NODE_ENV === 'production' 
-      ? 'dist/migrations/**/*.js' 
-      : 'src/migrations/**/*.ts'
+    // This looks at where the current file is located
+    __dirname + '/migrations/**/*.{js,ts}'
   ],
 });
