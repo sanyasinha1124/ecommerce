@@ -3,8 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Product, ProductType, Order } from '../models/models';
 
-const API = 'http://localhost:3000/api/admin';
-
+// const API = 'http://localhost:3000/api/admin';
+const API = '/api/admin';
 @Injectable({ providedIn: 'root' })
 export class AdminService {
   constructor(private http: HttpClient) {}

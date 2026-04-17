@@ -32,4 +32,131 @@
   .filter-toggle { display: flex !important; }
 } 
 
+/* Layout Wrapper */
+.filter-wrapper {
+  width: 100%;
+  display: block;
+  margin-bottom: 30px;
+}
 
+/* Main Container */
+.filter-container {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  border: 1px solid #eef2f6;
+}
+
+/* Header Section */
+.filter-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #f0f0f0;
+  padding-bottom: 15px;
+}
+
+.filter-title {
+  margin: 0;
+  font-size: 1.25rem;
+  color: #1a1a1a;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.filter-subtitle {
+  margin: 4px 0 0;
+  font-size: 0.85rem;
+  color: #888;
+}
+
+/* Form Grid */
+.filter-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  align-items: end;
+}
+
+/* Common Form Elements */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #444;
+  text-transform: uppercase;
+}
+
+.form-input, .form-select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ced4da;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  background: #fdfdfd;
+  outline: none;
+  transition: border 0.2s;
+}
+
+.form-input:focus, .form-select:focus {
+  border-color: #000;
+}
+
+/* Price Group */
+.price-input-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.price-separator {
+  color: #adb5bd;
+}
+
+/* Checkboxes */
+.checkbox-group {
+  display: flex;
+  gap: 20px;
+  padding-bottom: 12px;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.checkbox-label input {
+  width: 20px;
+  height: 20px;
+  margin-right: 10px;
+  accent-color: #000;
+}
+
+/* Reset Button */
+.btn-reset {
+  background: #fff;
+  color: #ff4d4f;
+  border: 1px solid #ff4d4f;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.btn-reset:hover {
+  background: #ff4d4f;
+  color: #fff;
+}

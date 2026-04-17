@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { SessionStore } from '../session/store';
+import rateLimit from 'express-rate-limit';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret_change_in_prod';
 
@@ -43,3 +44,11 @@ export function authenticate(req: Request, res: Response, next: NextFunction): v
     res.status(401).json({ message: 'Invalid token' });
   }
 }
+// directly copied from auth.routes.ts for now, can be customized later per route if needed`
+// export const rateLimiter=rateLimit({
+//   windowMs: 15 * 60 * 1000, // 15 minutes
+//   max: 100, // limit each IP to 100 requests per windowMs
+//   message: { message: 'Too many requests, please try again later.' }, 
+//   standardHeaders:true,
+//   legacyHeaders:false
+// });

@@ -16,10 +16,14 @@ import fs from 'fs';
 const app = express();
 
 // Security middleware
-app.use(helmet());
+// app.use(helmet());
+
+app.use(helmet({
+  contentSecurityPolicy: false, // Disable CSP temporarily to see if CSS returns
+}));
 app.use(cors({
-  origin: 'http://localhost:4200', // Angular dev server
-  credentials: true,               // Required for cookies to be sent cross-origin
+  origin: ['http://localhost:4200', 'http://localhost:3000'], // Allow both for easy testing
+  credentials: true, // Required for cookies to be sent cross-origin
 }));
 
 app.use(express.json());
@@ -44,23 +48,32 @@ app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 // app.get('/api', (req, res) => {
 //   res.sendFile(path.join(frontendDist, 'index.html'));
 // });
-const angularDistRoot = path.join(__dirname, "../../frontend/dist/frontend");
+
+const projectFolderName = 'stylehub-frontend';
+const angularDistRoot = path.join(__dirname, "../../frontend/dist", projectFolderName);
 const angularBrowserPath = path.join(angularDistRoot, "browser");
 
 // Determine if we should use the /browser subfolder or the root dist
-const angularDistPath = fs.existsSync(angularBrowserPath)
-  ? angularBrowserPath
-  : angularDistRoot;
+const angularDistPath = path.join(__dirname, "../../frontend/dist/frontend");
 
 console.log('Serving frontend from:', angularDistPath);
+// Check if the directory exists to avoid the ENOENT error
+if (!fs.existsSync(angularDistPath)) {
+    console.error('❌ ERROR: Frontend build directory not found at:', angularDistPath);
+    console.error('Did you run "npm run build" in the frontend folder?');
+}
 
 app.use(express.static(angularDistPath));
 
 // Handle Angular Routing: Serve index.html for any route that doesn't start with /api
 app.get(/^\/(?!api).*/, (req, res) => {
-  res.sendFile(path.join(angularDistPath, "index.html"));
+    const indexPath = path.join(angularDistPath, "index.html");
+    if (fs.existsSync(indexPath)) {
+        res.sendFile(indexPath);
+    } else {
+        res.status(404).send("Frontend index.html not found. Check your build output.");
+    }
 });
-
 // Central error handler — must be registered after all routes
 app.use(errorHandler);
 

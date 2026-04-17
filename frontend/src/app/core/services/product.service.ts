@@ -12,7 +12,7 @@ export interface ProductQuery {
 
 @Injectable({ providedIn: 'root' })
 export class ProductService {
-  private API = 'http://localhost:3000/api/products';
+  private API = '/api/products';
   constructor(private http: HttpClient) { }
 
   getTaxonomy(): Observable<ProductType[]> {

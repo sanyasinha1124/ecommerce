@@ -112,9 +112,9 @@ import { Product, ProductType, Category, SubCategory } from '../../../core/model
                 </div>
               </td>
               <td>
-                <span class="path-badge">{{ p.subCategory?.category?.name }}</span>
+                <span class="path-badge">{{ p.subCategory.category.name }}</span>
                 <span class="path-arrow">›</span>
-                <span class="path-sub">{{ p.subCategory?.name }}</span>
+                <span class="path-sub">{{ p.subCategory.name }}</span>
               </td>
               <td class="price">₹{{ p.price | number }}</td>
               <td>

@@ -89,3 +89,162 @@ export class HighlightDirective {
   }
 }
 
+
+hooks in angular -- 
+
+Hook	When it Runs	Common Use
+ngOnInit	After the component is created and inputs are set --	Initialize data, call APIs
+ngOnChanges	Whenever input properties change	-- React to new values from parent
+ngDoCheck	On every change detection cycle --	Custom change detection logic
+ngAfterContentInit	After content (like ) is projected	Setup projected content
+ngAfterContentChecked	After projected content is checked	Respond to content changes
+ngAfterViewInit	After the component’s view and child views are initialized	Access @ViewChild elements
+ngAfterViewChecked	After the view is checked	Respond to view changes
+ngOnDestroy	Just before the component is removed	Cleanup (unsubscribe, clear timers)
+
+
+selector in angular --
+1.Element selector (most common)
+
+@Component({
+  selector: 'app-user-card',
+  templateUrl: './user-card.component.html',
+  styleUrls: ['./user-card.component.css']
+})
+export class UserCardComponent {
+  // component logic here
+}
+
+<app-user-card></app-user-card>
+
+2.attribute selector - You can use attribute 
+selectors for components, but it’s rare and not recommended unless you have a very specific reason.
+
+import { Component } from '@angular/core';
+
+@Component({
+  selector: '[appHighlight]',   // attribute selector
+  template: `<span style="color: red;">Highlighted text!</span>`
+})
+export class HighlightComponent {}
+
+<!-- Apply the component by using the attribute -->
+<div appHighlight></div>
+
+3.class selector
+
+import { Component } from '@angular/core';
+
+@Component({
+  selector: '.appStyle',   // class selector
+  template: `<p style="font-weight: bold;">Styled text!</p>`
+})
+export class StyleComponent {}
+
+<!-- Apply the component by using the class -->
+<div class="appStyle"></div>
+
+
+LOADING - 
+1. Eager Loading -
+This is the default way of loading. All components, modules, and dependencies are loaded at the very beginning when the application start
+
+2.Lazy Loading
+This is what you saw in the code snippet you shared (loadComponent). It loads a feature or component only when the user navigates to that specific route.
+
+IN app.routes loadcomponent() used
+
+why do we do ng build ?
+high-level TypeScript into optimized JavaScript.
+
+step - 1. ng build (The command looks into your package.json file under the "scripts" section)
+step 2 - compiling (Browsers cannot read TypeScript. The build process runs the compiler to convert all your .ts files into .js)
+step 3- bundling (uring development, you might have hundreds of small files. The builder follows the "imports" in your code to create a few large files (bundles).)
+step 4 - Minification(To save bandwidth, the builder strips out:comments, whitespace,long var name to short,dead code which is not used)
+step 5 - Hashing for Caching (build files often look like main.7a2b3c.js. This random string is a hash. If you change your code and rebuild, the hash changes. This tells the user's browser, "Hey, I have a new version, don't use the old cached one!")
+
+guards - Guards are used to protect routes. If a user isn't logged in, you don't want them accessing the /admin dashboard.
+       
+ main types of guards in Angular:
+
+CanActivate: Checks if a user can visit a route.
+
+     canActivate(): boolean {
+  if (this.authService.isLoggedIn()) {
+    return true; // Let them in
+  } else {
+    this.router.navigate(['/login']);
+    return false; // Block access
+  }
+}
+CanActivateChild: Checks if a user can visit nested child routes.
+
+CanDeactivate: Useful for asking, "Are you sure you want to leave?" (e.g., if there are unsaved changes in a form).
+
+CanMatch: Determines if a route should even be considered for a path.
+
+implement in app.routes.ts
+// app.routes.ts
+export const routes: Routes = [
+  { 
+    path: 'dashboard', 
+    component: UserDashboardComponent, 
+    canActivate: [authGuard] // Only logged-in users
+  },
+  { 
+    path: 'admin/reports', 
+    component: AdminReportsComponent, 
+    canActivate: [authGuard, adminGuard] // Must be logged in AND an admin
+  }
+];
+
+
+using a service inside component can be done in 2 ways 
+1) using constrcutor Injection
+constructor and then ngOnInit
+@Component({...})
+export class EventListComponent {
+  // Angular sees this and looks for 'EventService' in its container
+  constructor(private eventService: EventService) {}
+
+  ngOnInit() {
+    this.events = this.eventService.getEvents();
+  }
+}
+2) inject()
+
+auth = inject(AuthService);
+
+package.json and package.lock.json ?
+---> if a teammate clones your project and runs npm install, this section ensures they get the exact same versions of Angular, 
+     RxJS, and TypeScript that you are using.
+
+package.json -- created by using npm init
+                 npm init -y to skip the questions
+                 ng new stylehub-frontend. The Angular CLI automatically generated a package.json for 
+                 you with all the necessary Angular dependencies already listed.
+
+                 Version Ranges: It uses symbols like ^ or ~. For example, "@angular/core": "^17.3.0" means "I want version 17.3.0,
+                 or any minor update like 17.4.0."
+
+                 1. The Caret (^) — "The Balanced Update"
+                    It allows updates to the Minor and Patch versions, but not the Major version.
+                    Example: ^17.3.12
+                    ✅ Can update to: 17.4.0 or 17.9.9
+                    ❌ Will NOT update to: 18.0.0
+
+                2. The Tilde (~) — "The Safe Bet"
+                    It only allows updates to the Patch version. It locks the Major and Minor numbers.
+                    Example: ~17.3.12
+                    ✅ Can update to: 17.3.13 or 17.3.99
+                    ❌ Will NOT update to: 17.4.0
+
+package-lock.json -- (detailed version ) When you run npm install for the first time in a project that only has a package.json, 
+                     npm looks at your list, goes to the internet to download them, and then writes the package-lock.json 
+                     to record exactly what it found.
+                     npm install lodash, npm does two things:
+                     Adds "lodash" to your package.json. 
+                     Updates package-lock.json with the exact version
+
+                     Updates: When you run npm update, npm tries to find newer versions allowed by your
+                      package.json ranges and updates the lockfile to reflect the new "locked" versions.

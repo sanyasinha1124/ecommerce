@@ -1,0 +1,200 @@
+window function 
+_____________________________________
+
+SELECT 
+    column_name,
+    FUNCTION() OVER (
+        PARTITION BY group_column 
+        ORDER BY sort_column
+    ) as alias_name
+FROM Table;
+
+1. Ranking Functions
+ROW_NUMBER()	Unique sequential number.	1, 2, 3
+RANK()	Leaves gaps after ties.	            1, 1, 3
+DENSE_RANK()	No gaps after ties.	        1, 1, 2
+
+2.value function
+LAG(): Accesses data from a previous row.
+
+LEAD(): Accesses data from a subsequent row.
+
+
+SELECT 
+    name, 
+    score,
+    ROW_NUMBER() OVER (ORDER BY score DESC) as row_num,
+    RANK() OVER (ORDER BY score DESC) as rnk,
+    DENSE_RANK() OVER (ORDER BY score DESC) as dense_rnk,
+    NTILE(4) OVER (ORDER BY score DESC) as quartile
+FROM Students;
+
+SELECT 
+    employee_id, 
+    department, 
+    salary,
+    SUM(salary) OVER (PARTITION BY department) as dept_total_cost,
+    AVG(salary) OVER (PARTITION BY department) as dept_avg_salary,
+    COUNT(*) OVER (PARTITION BY department) as employees_in_dept,
+    MIN(salary) OVER (PARTITION BY department) as lowest_paid,
+    MAX(salary) OVER (PARTITION BY department) as highest_paid
+FROM Employees;
+
+
+TRANSACTION
+
+A transaction is a single unit of work. If any part of it fails, the whole thing is undone.
+
+Atomicity: All or nothing.
+
+Consistency: Moves the DB from one valid state to another.
+
+Isolation: Transactions don't interfere with each other.
+
+Durability: Once committed, it stays saved even if the system crashes.
+
+syntax for transactions
+---------------------------------------
+BEGIN TRANSACTION;
+
+-- Operation 1: Deduct money from Account A
+UPDATE Accounts SET balance = balance - 500 WHERE account_id = 1;
+
+-- Operation 2: Add money to Account B
+UPDATE Accounts SET balance = balance + 500 WHERE account_id = 2;
+
+-- If both succeed:
+COMMIT;
+
+-- If something goes wrong:
+ROLLBACK;
+
+
+eg : Booking a Ticket
+
+BEGIN TRY
+    BEGIN TRANSACTION;
+
+    -- Step 1: Insert the booking
+    INSERT INTO Bookings (user_id, event_id, status) 
+    VALUES (101, 5, 'Confirmed');
+
+    -- Step 2: Update event seat count
+    UPDATE Events SET available_seats = available_seats - 1 
+    WHERE event_id = 5;
+
+    -- If we reach here, everything worked
+    COMMIT TRANSACTION;
+END TRY
+BEGIN CATCH
+    -- If any error occurred in the TRY block, undo everything
+    IF @@TRANCOUNT > 0
+        ROLLBACK TRANSACTION;
+
+    -- Log the error for the developer
+    SELECT ERROR_MESSAGE() AS ErrorMessage;
+END CATCH;
+
+
+-------------------
+multiple try catch 
+
+BEGIN TRANSACTION;
+BEGIN TRY
+    -- Step 1: Critical Core Logic
+    INSERT INTO Orders (OrderID, Date) VALUES (1, GETDATE());
+
+    BEGIN TRY
+        -- Step 2: Non-critical (e.g., Logging)
+        INSERT INTO AuditLog (Message) VALUES ('Order placed');
+    END TRY
+    BEGIN CATCH
+        -- Swallow error or log it, but don't kill the main transaction
+        PRINT 'Logging failed, but moving on...';
+    END CATCH
+
+    COMMIT TRANSACTION;
+END TRY
+BEGIN CATCH
+    IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
+    THROW; -- Re-throw the error to the calling application
+END CATCH
+-------------------------------------------------
+@@TRANCOUNT
+is there a transaction open
+it is a global variable in SQL Server that acts as a counter for how many active transactions are currently open in your session.
+--------------------------------------------------
+SELECT @@TRANCOUNT -- Result: 0
+
+BEGIN TRAN -- Count is 1
+    BEGIN TRAN -- Count is 2
+    COMMIT TRAN -- Count is 1 (Nothing is saved yet!)
+COMMIT TRAN -- Count is 0 (Now the data is saved)
+
+---------------------------------------------------------
+joins 
+
+multiple joins -
+SELECT 
+    e.event_id,
+    e.event_name,
+    c.category_name,
+    u.user_name AS organizer_name,
+    COUNT(b.booking_id) AS total_tickets_sold
+FROM Events e
+INNER JOIN Categories c ON e.category_id = c.category_id
+INNER JOIN Users u ON e.organizer_id = u.user_id
+LEFT JOIN Bookings b ON e.event_id = b.event_id
+GROUP BY e.event_id, e.event_name, c.category_name, u.user_name;
+------------------------------------------------
+
+INDEXING
+
+CLUSTERED INDEX: This index determines the physical order of data in the table.
+                  You can have only one clustered index per table.
+                  Usually, the Primary Key automatically creates a clustered index.
+
+NON-CLUSTERED INDEX: A separate structure from the data rows. it contains a pointer (address) to the actual data.
+                    You can have multiple non-clustered indexes on a table.
+
+
+Unique Index
+Ensures that no two rows have the same value in the indexed column.
+This is automatically created for UNIQUE constraints and PRIMARY KEYs.
+
+
+Indexing isn't free. While it makes SELECT queries lightning fast, it slows down:
+
+INSERT , UPDATE ,DELETE
+Because every time you change the data, the database has to update the index "book" as well.
+
+"Should I index every column?", the answer is No. Only index columns used 
+frequently in WHERE clauses, JOIN conditions, or ORDER BY statements.
+
+Interviewer: "Your dashboard is taking 10 seconds to load the 'Recent Events' list. What is your first step?"
+If your dashboard takes 10 seconds to load the "Recent Events" list, the very first thing you should do is find out where the delay is happening.
+
+Think of it like this:
+
+Is the backend (database or API) slow to give the data?
+
+Or is the frontend (browser/UI) slow to show the data once it arrives?
+
+I’ll check how long the API call takes. If the API itself is slow,
+ I’ll look at the database query. If the API is fast but the page 
+ still takes time, then the issue is in the frontend.”
+
+ Slow network request = backend issue.
+
+Fast network request but slow display = frontend issue.
+
+1. Check the API call (backend)
+Open your browser’s Developer Tools (usually F12).
+
+Go to the Network tab.
+
+Reload the dashboard.
+
+2.Check rendering (frontend)
+That means the browser is struggling to process or render 
+the data (maybe too much data, heavy loops, or inefficient rendering).

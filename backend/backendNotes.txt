@@ -1,0 +1,85 @@
+If a user's browser gets stuck in a loop calling our 'Event Details' API, how does the Rate Limiter help?"
+"The Rate Limiter acts as a circuit breaker. It ensures that one client's infinite loop doesn't consume all the server's threads or database connections. By returning a 429 error, it preserves resources for other users. On the frontend, I would see those 429s in the Network tab, which immediately tells me my Angular code is firing too many requests."
+
+it exist in auth.route of my backend directly or
+in my auth.middleware from where we fetch them in auth.routes
+
+const rateLimit = require('express-rate-limit');
+
+const apiLimiter = rateLimit({
+	windowMs: 15 * 60 * 1000, // 15 minutes
+	max: 100, // Limit each IP to 100 requests per window
+	message: 'Too many requests, please try again later.',
+    // This executes BEFORE your router logic
+});
+
+// Apply to your booking route
+app.use('/api/book-ticket', apiLimiter);
+
+If a request comes in and multiple things are wrong:
+
+Rate Limit Exceeded (429): Checked First(first line of defence). If the limit is hit, nothing else matters.
+
+Authentication/Authorization (401/403): Checked Second.
+
+Input Validation (400): Checked Third.
+
+Business Logic Errors (Infinite Loops/500): Checked Last.
+
+
+-- In SQL Transactions
+In a database transaction  errors are usually handled by the database engine's Parser and Executor.
+
+Syntax Errors: Treated first (the query won't even run).
+
+Constraint Errors: (e.g., Foreign Key or Unique violations). If multiple rows violate constraints, the DB engine usually stops at the first one it tries to process and triggers a ROLLBACK.
+
+
+-- don't want the first error to stop everything. You want to see every mistake that happened.
+    JavaScript: Use Promise.allSettled(). It doesn't "fail fast." It waits for all 5 requests to finish and gives you a list of which ones succeeded and which ones failed.
+
+-- 1. In Sequential Code (Try-Catch)
+In a standard try...catch block, the very first error that is encountered stops the execution of the entire block immediately.
+
+Priority: The first line of code that fails.
+
+Behavior: Any errors that would have happened on the lines below it are never even reached.
+
+TypeScript
+try {
+  const a = undefined;
+  console.log(a.name); // 1. ERROR HAPPENS HERE (Execution stops)
+  
+  const b = 10 / 0;    // This line is never reached
+} catch (error) {
+  console.log("Only the first error is caught:", error);
+}
+
+- PROMISE
+1)Promise.all
+2)Promise.race
+3)
+
+guards in backend - A guard is a function that has access to the Request, Response, and a next() function. If the guard is satisfied, it calls next(); if not, it sends a 401 Unauthorized or 403 Forbidden response immediately.
+
+//eg of guard usage
+// event.routes.ts
+import { Router } from 'express';
+import { isAuth } from '../middleware/auth.guard';
+import { isAdmin } from '../middleware/admin.guard';
+
+const router = Router();
+
+// Public route: No guards needed
+router.get('/all', eventController.listAll);
+
+// Protected route: Must be logged in
+router.post('/book', isAuth, bookingController.create);
+
+// Highly protected route: Must be an Admin
+router.post('/create', isAuth, isAdmin, eventController.create);
+
+types - 1. authentication (who are you)
+         2.authorization (are you authorized for this)
+
+Observable

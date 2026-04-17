@@ -5,8 +5,8 @@ import { Router } from '@angular/router';
 import { User } from '../models/models';
 
 //In Angular, a URL starting with a forward slash (like /api/...) is a relative path. This means Angular will try to call that endpoint on the same domain and port where the app is running—which is http://localhost:4200. Since your backend is actually running on http://localhost:3000, the Angular dev server looks for that route internally, can't find it, and returns a 404.
-const API = 'http://localhost:3000/api/auth';
-
+    // const API = 'http://localhost:3000/api/auth';
+const API = '/api/auth';
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private currentUserSubject = new BehaviorSubject<User | null>(null);
